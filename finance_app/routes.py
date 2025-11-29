@@ -19,6 +19,7 @@ from finance_app.services import (
     summarize_monthly_spend,
     balance_over_time,
     budget_progress,
+    total_balance,
 )
 
 main_bp = Blueprint("main", __name__)
@@ -58,6 +59,7 @@ def dashboard():
     monthly = summarize_monthly_spend(current_user.id)
     balance_points = balance_over_time(current_user.id)
     budgets = budget_progress(current_user.id, date.today())
+    remaining = total_balance(current_user.id, start, end)
 
     recent_tx = (
         Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.date.desc()).limit(5).all()
@@ -74,6 +76,7 @@ def dashboard():
         recent_tx=recent_tx,
         start=start_str,
         end=end_str,
+        remaining=remaining,
     )
 
 
@@ -84,6 +87,17 @@ def transactions():
     start = _parse_date(request.args.get("start"))
     end = _parse_date(request.args.get("end"))
     category = request.args.get("category") or None
+    range_filter = request.args.get("range")
+
+    if range_filter in ["this_week", "last_week"]:
+        today = date.today()
+        monday = today - timedelta(days=today.weekday())
+        if range_filter == "this_week":
+            start = monday
+            end = today
+        else:
+            start = monday - timedelta(days=7)
+            end = monday - timedelta(days=1)
 
     query = get_transactions_for_period(current_user.id, start, end, category)
     if sort == "amount_asc":
@@ -104,6 +118,7 @@ def transactions():
         sort=sort,
         start=request.args.get("start"),
         end=request.args.get("end"),
+        range_filter=range_filter,
     )
 
 
@@ -227,6 +242,52 @@ def budgets():
     budgets_list = Budget.query.filter_by(user_id=current_user.id).order_by(Budget.period_end.desc()).all()
     progress = budget_progress(current_user.id, date.today())
     return render_template("budgets.html", budgets=budgets_list, progress=progress, categories=DEFAULT_CATEGORIES)
+
+
+@main_bp.route("/savings", methods=["GET", "POST"])
+@login_required
+def savings():
+    from finance_app.models import SavingsGoal
+
+    goal = SavingsGoal.query.filter_by(user_id=current_user.id).first()
+    if not goal:
+        goal = SavingsGoal(user_id=current_user.id, name="My Savings Goal", target_amount=0, current_amount=0)
+        db.session.add(goal)
+        db.session.commit()
+
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action == "set_target":
+            try:
+                target = float(request.form.get("target_amount", 0))
+            except ValueError:
+                flash("Target must be numeric.", "danger")
+                return redirect(url_for("main.savings"))
+            if target <= 0:
+                flash("Target must be greater than zero.", "danger")
+                return redirect(url_for("main.savings"))
+            goal.target_amount = target
+            db.session.commit()
+            flash("Savings target updated.", "success")
+        elif action == "add_contribution":
+            try:
+                add_amount = float(request.form.get("add_amount", 0))
+            except ValueError:
+                flash("Amount must be numeric.", "danger")
+                return redirect(url_for("main.savings"))
+            if add_amount <= 0:
+                flash("Contribution must be greater than zero.", "danger")
+                return redirect(url_for("main.savings"))
+            goal.current_amount += add_amount
+            db.session.commit()
+            flash("Contribution added.", "success")
+        return redirect(url_for("main.savings"))
+
+    percent = 0
+    if goal.target_amount > 0:
+        percent = min(goal.current_amount / goal.target_amount * 100, 999)
+
+    return render_template("savings.html", goal=goal, percent=percent)
 
 
 @main_bp.route("/budgets/<int:budget_id>/edit", methods=["GET", "POST"])

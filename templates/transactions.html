@@ -41,6 +41,8 @@
         <div class="col-sm-12 d-flex gap-2">
             <button class="btn btn-outline-light">Apply</button>
             <a class="btn btn-secondary" href="{{ url_for('main.transactions') }}">Reset</a>
+            <a class="btn btn-sm btn-outline-info" href="{{ url_for('main.transactions', range='this_week') }}">This week</a>
+            <a class="btn btn-sm btn-outline-info" href="{{ url_for('main.transactions', range='last_week') }}">Last week</a>
         </div>
     </div>
 </form>

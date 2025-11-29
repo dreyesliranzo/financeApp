@@ -28,7 +28,7 @@ def create_app(test_config=None):
         # Local import to avoid circular dependencies
         from finance_app.routes import main_bp
         from finance_app.auth import auth_bp
-        from finance_app.models import User
+        from finance_app.models import User, SavingsGoal
         from sqlalchemy import inspect, text
 
         db.create_all()
@@ -42,6 +42,11 @@ def create_app(test_config=None):
                 db.session.commit()
             except Exception:
                 db.session.rollback()
+
+        # Ensure savings_goals table exists (create_all already covers new DBs)
+        existing_tables = inspector.get_table_names()
+        if "savings_goals" not in existing_tables:
+            db.create_all()
 
         app.register_blueprint(auth_bp)
         app.register_blueprint(main_bp)

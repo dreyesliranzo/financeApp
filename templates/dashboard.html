@@ -34,9 +34,23 @@
         <div class="stat-tile">
             <div>
                 <div class="stat-label">Net</div>
-                <div class="stat-value">{{ '%.2f'|format(income - expenses) }}</div>
+                {% set net_value = income - expenses %}
+                <div class="stat-value {% if net_value < 0 %}text-danger{% else %}text-success{% endif %}">
+                    {{ '%.2f'|format(net_value) }}
+                </div>
             </div>
             <span class="avatar-dot" style="background:#4fb3ff"></span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-tile">
+            <div>
+                <div class="stat-label">Remaining Balance</div>
+                <div class="stat-value {% if remaining < 0 %}text-danger{% else %}text-success{% endif %}">
+                    {{ '%.2f'|format(remaining) }}
+                </div>
+            </div>
+            <span class="avatar-dot" style="background:{% if remaining < 0 %}#ff6b6b{% else %}#38d996{% endif %}"></span>
         </div>
     </div>
 </div>
@@ -140,6 +154,38 @@
                     </ul>
                 {% else %}
                     <p class="text-secondary mb-0">No recent transactions.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card glass-card mt-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="card-title mb-0">Savings Goal</h5>
+                        <small class="text-secondary">Track your progress</small>
+                    </div>
+                    <a class="text-decoration-none" href="{{ url_for('main.savings') }}">Manage</a>
+                </div>
+                {% if current_user.savings_goal %}
+                    {% set goal = current_user.savings_goal %}
+                    {% set percent = 0 %}
+                    {% if goal.target_amount > 0 %}
+                        {% set percent = (goal.current_amount / goal.target_amount * 100) %}
+                    {% endif %}
+                    <div class="d-flex justify-content-between">
+                        <div class="fw-semibold">{{ goal.name }}</div>
+                        <div class="text-end">
+                            <span class="fw-bold">{{ '%.0f'|format(percent) if percent < 999 else '999+' }}%</span>
+                        </div>
+                    </div>
+                    <div class="progress mt-2">
+                        <div class="progress-bar safe" style="width: {{ 100 if percent > 100 else percent }}%"></div>
+                    </div>
+                    <small class="text-secondary d-block mt-2">
+                        ${{ '%.2f'|format(goal.current_amount) }} / ${{ '%.2f'|format(goal.target_amount or 0) }}
+                    </small>
+                {% else %}
+                    <p class="text-secondary mb-0">No savings goal set.</p>
                 {% endif %}
             </div>
         </div>

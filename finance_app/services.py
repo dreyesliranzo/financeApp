@@ -101,3 +101,15 @@ def budget_progress(user_id: int, on_date: date = None):
         percent = min((spent / budget.amount) * 100 if budget.amount else 0, 999)
         progress.append({"budget": budget, "spent": spent, "percent": percent})
     return progress
+
+
+def total_balance(user_id: int, start: date = None, end: date = None) -> float:
+    """Income minus expenses for the given period."""
+    tx_query = get_transactions_for_period(user_id, start, end)
+    expenses = (
+        tx_query.filter(Transaction.type == "expense").with_entities(func.sum(Transaction.amount)).scalar() or 0
+    )
+    income = (
+        tx_query.filter(Transaction.type == "income").with_entities(func.sum(Transaction.amount)).scalar() or 0
+    )
+    return income - expenses
