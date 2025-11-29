@@ -10,9 +10,14 @@ def seed():
     with app.app_context():
         username = "demo"
         password = "demo123"
+        email = "demo@example.com"
         user = User.query.filter_by(username=username).first()
         if not user:
-            user = User(username=username, password_hash=bcrypt.generate_password_hash(password).decode("utf-8"))
+            user = User(
+                username=username,
+                email=email,
+                password_hash=bcrypt.generate_password_hash(password).decode("utf-8"),
+            )
             db.session.add(user)
             db.session.commit()
             print("Created demo user with password 'demo123'")
