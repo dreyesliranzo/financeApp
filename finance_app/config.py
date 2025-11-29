@@ -1,12 +1,18 @@
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 def normalize_db_url(url: str) -> str:
-    """Ensure SQLAlchemy-compatible Postgres URL and require SSL when not specified."""
+    """Ensure SQLAlchemy-compatible Postgres URL and add SSL only when needed."""
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql+psycopg2://", 1)
-    if url.startswith("postgresql") and "sslmode=" not in url:
+
+    parsed = urlparse(url)
+    host = parsed.hostname or ""
+    is_internal = "internal" in host  # Render internal URLs should not force sslmode=require
+
+    if url.startswith("postgresql") and "sslmode=" not in url and not is_internal:
         sep = "&" if "?" in url else "?"
         url = f"{url}{sep}sslmode=require"
     return url
