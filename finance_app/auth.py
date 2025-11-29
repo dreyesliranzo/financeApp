@@ -1,10 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import re
+import secrets
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 
 from finance_app import db, bcrypt
-from finance_app.models import User
+from finance_app.models import User, PasswordReset
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -25,8 +27,11 @@ def register():
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip()
         password = request.form.get("password", "")
         errors = _validate_credentials(username, password)
+        if not email or not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+            errors.append("Please provide a valid email.")
         if errors:
             for error in errors:
                 flash(error, "danger")
@@ -36,9 +41,12 @@ def register():
         if existing:
             flash("Username already exists. Please choose another.", "warning")
             return render_template("register.html")
+        if User.query.filter_by(email=email).first():
+            flash("Email already linked to an account.", "warning")
+            return render_template("register.html")
 
         password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-        user = User(username=username, password_hash=password_hash, created_at=datetime.utcnow())
+        user = User(username=username, email=email, password_hash=password_hash, created_at=datetime.utcnow())
         db.session.add(user)
         db.session.commit()
         flash("Account created. Please log in.", "success")
@@ -76,3 +84,69 @@ def logout():
     logout_user()
     flash("Logged out successfully.", "info")
     return redirect(url_for("auth.login"))
+
+
+def _generate_reset_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+@auth_bp.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        if not email or not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+            flash("Please enter a valid email.", "danger")
+            return render_template("forgot_password.html")
+
+        user = User.query.filter_by(email=email).first()
+        # Always respond the same to avoid leaking which emails exist
+        flash("If an account exists for this email, you will receive a reset link.", "info")
+
+        if user:
+            token = _generate_reset_token()
+            expires_at = datetime.utcnow() + timedelta(hours=1)
+            reset = PasswordReset(user_id=user.id, token=token, expires_at=expires_at, used=False)
+            db.session.add(reset)
+            db.session.commit()
+            # In production, send an email. For now, log to server for manual use.
+            print(f"[Password reset] user={user.username} email={user.email} token={token}")
+        return redirect(url_for("auth.login"))
+    return render_template("forgot_password.html")
+
+
+@auth_bp.route("/reset/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    reset = PasswordReset.query.filter_by(token=token, used=False).first()
+    if not reset or reset.expires_at < datetime.utcnow():
+        flash("Reset link is invalid or expired.", "danger")
+        return redirect(url_for("auth.forgot_password"))
+
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        if len(password) < 6:
+            flash("Password must be at least 6 characters.", "warning")
+            return render_template("reset_password.html", token=token)
+        reset.user.password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+        reset.used = True
+        db.session.commit()
+        flash("Password updated. Please log in.", "success")
+        return redirect(url_for("auth.login"))
+
+    return render_template("reset_password.html", token=token)
+
+
+@auth_bp.route("/forgot-username", methods=["GET", "POST"])
+def forgot_username():
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        if not email or not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+            flash("Please enter a valid email.", "danger")
+            return render_template("forgot_username.html")
+
+        user = User.query.filter_by(email=email).first()
+        flash("If an account exists for this email, we sent the username.", "info")
+        if user:
+            # In production send email; here log to server for manual reference
+            print(f"[Username reminder] email={email} username={user.username}")
+        return redirect(url_for("auth.login"))
+    return render_template("forgot_username.html")

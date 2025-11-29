@@ -28,8 +28,20 @@ def create_app(test_config=None):
         # Local import to avoid circular dependencies
         from finance_app.routes import main_bp
         from finance_app.auth import auth_bp
+        from finance_app.models import User
+        from sqlalchemy import inspect, text
 
         db.create_all()
+
+        # Ensure email column exists for existing databases without migrations
+        inspector = inspect(db.engine)
+        columns = [c["name"] for c in inspector.get_columns("users")]
+        if "email" not in columns:
+            try:
+                db.session.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR(120) UNIQUE"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
 
         app.register_blueprint(auth_bp)
         app.register_blueprint(main_bp)

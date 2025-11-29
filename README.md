@@ -4,6 +4,7 @@ Modern single-user personal finance web app with secure login, transaction track
 
 ## Features
 - Secure auth (Flask-Login + bcrypt). Register/login/logout, password change.
+- Password recovery: forgot-password token flow (email-based) and forgot-username request.
 - Transactions: expense/income with date, category, description, amount; filter/sort; edit/delete.
 - Budgets: overall or per-category per period with progress bars.
 - Dashboard & Reports: category pie, monthly net bar, balance line, summaries, recent items.
@@ -24,6 +25,10 @@ Optional: copy `.env.example` to `.env` and set a strong `SECRET_KEY` and a cust
 py app.py
 ```
 Visit http://localhost:5000. First user: go to Register, create account, then log in.
+
+Password reset/username reminder:
+- Forgot password: submit your account email. A reset token is logged to the server console in this demo; use the link `/reset/<token>` to set a new password. In production, wire an email provider and send the link.
+- Forgot username: submit your email; the username is logged server-side in this demo (would be emailed in production).
 
 ## Deploy (Render/Fly/Railway style)
 - Add env vars in your host: `SECRET_KEY=<strong secret>`, `DATABASE_URL=<your db url>`. Use Postgres for multi-user hosting; set `DATABASE_URL` accordingly. SQLite can work only if the host provides a persistent disk.
