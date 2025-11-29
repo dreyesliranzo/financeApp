@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="fw-bold mb-0">Dashboard</h2>
+        <p class="text-secondary">Overview of your cashflow and budgets.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('main.add_transaction') }}" class="btn btn-primary me-2">+ Add Transaction</a>
+        <a href="{{ url_for('main.budgets') }}" class="btn btn-outline-light">Manage Budgets</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-tile">
+            <div>
+                <div class="stat-label">Income</div>
+                <div class="stat-value text-success">${{ '%.2f'|format(income) }}</div>
+            </div>
+            <span class="avatar-dot" style="background:#38d996"></span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-tile">
+            <div>
+                <div class="stat-label">Expenses</div>
+                <div class="stat-value text-danger">${{ '%.2f'|format(expenses) }}</div>
+            </div>
+            <span class="avatar-dot" style="background:#ff6b6b"></span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-tile">
+            <div>
+                <div class="stat-label">Net</div>
+                <div class="stat-value">{{ '%.2f'|format(income - expenses) }}</div>
+            </div>
+            <span class="avatar-dot" style="background:#4fb3ff"></span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card glass-card chart-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="card-title mb-0">Spending by Category</h5>
+                        <small class="text-secondary">Expenses grouped by category</small>
+                    </div>
+                </div>
+                <canvas id="categoryChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card glass-card chart-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="card-title mb-0">Monthly Net</h5>
+                        <small class="text-secondary">Income minus expenses per month</small>
+                    </div>
+                </div>
+                <canvas id="monthlyChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-8">
+        <div class="card glass-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="card-title mb-0">Balance Over Time</h5>
+                        <small class="text-secondary">Cumulative balance trajectory</small>
+                    </div>
+                </div>
+                <canvas id="balanceChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card glass-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="card-title mb-0">Budgets</h5>
+                        <small class="text-secondary">Current period progress</small>
+                    </div>
+                    <a class="text-decoration-none" href="{{ url_for('main.budgets') }}">View all</a>
+                </div>
+                {% if budgets %}
+                    {% for item in budgets %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <div class="fw-semibold">{{ item.budget.category or "All categories" }}</div>
+                                    <small class="text-secondary">${{ '%.2f'|format(item.spent) }} of ${{ '%.2f'|format(item.budget.amount) }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold {% if item.percent > 100 %}text-danger{% else %}text-success{% endif %}">{{ '%.0f'|format(item.percent) }}%</div>
+                                </div>
+                            </div>
+                            <div class="progress mt-2">
+                                <div class="progress-bar {% if item.percent > 100 %}over{% else %}safe{% endif %}" role="progressbar" style="width: {{ item.percent if item.percent < 100 else 100 }}%;"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-secondary mb-0">No budgets set.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card glass-card mt-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="card-title mb-0">Recent Transactions</h5>
+                    </div>
+                    <a class="text-decoration-none" href="{{ url_for('main.transactions') }}">View all</a>
+                </div>
+                {% if recent_tx %}
+                    <ul class="list-unstyled mb-0">
+                        {% for tx in recent_tx %}
+                        <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light-subtle">
+                            <div>
+                                <div class="fw-semibold">{{ tx.category }}</div>
+                                <small class="text-secondary">{{ tx.date.strftime('%Y-%m-%d') }} • {{ tx.description or 'No description' }}</small>
+                            </div>
+                            <div class="fw-bold {% if tx.type == 'expense' %}text-danger{% else %}text-success{% endif %}">
+                                {% if tx.type == 'expense' %}-{% else %}+{% endif %}${{ '%.2f'|format(tx.amount) }}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-secondary mb-0">No recent transactions.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const categoryData = {{ category_totals|tojson }};
+    const monthlyData = {{ monthly|tojson }};
+    const balanceData = {{ balance_points|tojson }};
+
+    const catCtx = document.getElementById('categoryChart');
+    const categories = Object.keys(categoryData);
+    const catValues = categories.map(k => Math.abs(categoryData[k]));
+    new Chart(catCtx, {
+        type: 'doughnut',
+        data: {
+            labels: categories,
+            datasets: [{
+                data: catValues,
+                backgroundColor: ['#4fb3ff','#38d996','#ff6b6b','#ffb347','#a78bfa','#50e3c2','#f7aef8','#9ed0ff'],
+                borderWidth: 0
+            }]
+        },
+        options: { plugins: { legend: { position: 'bottom', labels: { color: '#dfe7f5' } } } }
+    });
+
+    const monthlyCtx = document.getElementById('monthlyChart');
+    new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: monthlyData.map(m => m[0]),
+            datasets: [{
+                label: 'Net',
+                data: monthlyData.map(m => m[1]),
+                backgroundColor: monthlyData.map(m => m[1] >= 0 ? 'rgba(56, 217, 150, 0.6)' : 'rgba(255, 107, 107, 0.6)'),
+                borderColor: monthlyData.map(m => m[1] >= 0 ? '#38d996' : '#ff6b6b'),
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+
+    const balanceCtx = document.getElementById('balanceChart');
+    new Chart(balanceCtx, {
+        type: 'line',
+        data: {
+            labels: balanceData.map(p => p[0]),
+            datasets: [{
+                label: 'Balance',
+                data: balanceData.map(p => p[1]),
+                fill: true,
+                backgroundColor: 'rgba(79, 179, 255, 0.15)',
+                borderColor: '#4fb3ff',
+                tension: 0.3
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+</script>
+{% endblock %}

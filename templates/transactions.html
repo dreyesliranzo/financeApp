@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="fw-bold mb-0">Transactions</h2>
+        <p class="text-secondary">Filter, edit, and manage your records.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('main.add_transaction') }}" class="btn btn-primary">+ Add Transaction</a>
+    </div>
+</div>
+
+<form class="filter-bar mb-3" method="get">
+    <div class="row g-2 align-items-end">
+        <div class="col-sm-3">
+            <label class="form-label">Start</label>
+            <input type="date" name="start" class="form-control" value="{{ start }}">
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label">End</label>
+            <input type="date" name="end" class="form-control" value="{{ end }}">
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-select">
+                <option value="">All</option>
+                {% for cat in categories %}
+                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label">Sort</label>
+            <select name="sort" class="form-select">
+                <option value="date_desc" {% if sort == 'date_desc' %}selected{% endif %}>Date (newest)</option>
+                <option value="date_asc" {% if sort == 'date_asc' %}selected{% endif %}>Date (oldest)</option>
+                <option value="amount_desc" {% if sort == 'amount_desc' %}selected{% endif %}>Amount (high)</option>
+                <option value="amount_asc" {% if sort == 'amount_asc' %}selected{% endif %}>Amount (low)</option>
+            </select>
+        </div>
+        <div class="col-sm-12 d-flex gap-2">
+            <button class="btn btn-outline-light">Apply</button>
+            <a class="btn btn-secondary" href="{{ url_for('main.transactions') }}">Reset</a>
+        </div>
+    </div>
+</form>
+
+<div class="card glass-card">
+    <div class="card-body table-responsive">
+        {% if transactions %}
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th class="text-end">Amount</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for tx in transactions %}
+                <tr>
+                    <td>{{ tx.date.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        <span class="badge {% if tx.type == 'expense' %}badge-expense{% else %}badge-income{% endif %}">
+                            {{ tx.type.title() }}
+                        </span>
+                    </td>
+                    <td>{{ tx.category }}</td>
+                    <td>{{ tx.description or '-' }}</td>
+                    <td class="text-end {% if tx.type == 'expense' %}text-danger{% else %}text-success{% endif %}">
+                        {% if tx.type == 'expense' %}-{% else %}+{% endif %}${{ '%.2f'|format(tx.amount) }}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('main.edit_transaction', tx_id=tx.id) }}" class="btn btn-sm btn-outline-light">Edit</a>
+                        <form action="{{ url_for('main.delete_transaction', tx_id=tx.id) }}" method="post" class="d-inline" onsubmit="return confirm('Delete this transaction?');">
+                            <button class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p class="text-secondary mb-0">No transactions found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
