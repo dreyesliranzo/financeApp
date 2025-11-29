@@ -26,8 +26,14 @@ def send_email(to_email: str, subject: str, body: str) -> Optional[str]:
     msg.set_content(body)
 
     try:
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
-            if use_tls:
+        # Use SSL for port 465; STARTTLS otherwise
+        if not use_tls and smtp_port == 465:
+            smtp_cls = smtplib.SMTP_SSL
+        else:
+            smtp_cls = smtplib.SMTP
+
+        with smtp_cls(smtp_host, smtp_port, timeout=20) as server:
+            if use_tls and smtp_cls is smtplib.SMTP:
                 server.starttls()
             server.login(smtp_user, smtp_password)
             server.send_message(msg)
