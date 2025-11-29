@@ -89,6 +89,28 @@ def summarize_monthly_spend(user_id: int) -> List[Tuple[str, float]]:
     return sorted(monthly.items())
 
 
+def summarize_monthly_income_expense(user_id: int) -> List[Dict[str, object]]:
+    """Return per-month income and expense totals."""
+    month_expr = func.date_trunc("month", Transaction.date).label("month")
+    rows = (
+        Transaction.query.filter_by(user_id=user_id)
+        .with_entities(month_expr, Transaction.type, func.sum(Transaction.amount_base if Transaction.amount_base is not None else Transaction.amount))
+        .group_by(month_expr, Transaction.type)
+        .order_by(month_expr)
+        .all()
+    )
+    data = {}
+    for month_dt, t_type, total in rows:
+        key = month_dt.strftime("%Y-%m") if hasattr(month_dt, "strftime") else str(month_dt)
+        if key not in data:
+            data[key] = {"month": key, "income": 0.0, "expense": 0.0}
+        if t_type == "income":
+            data[key]["income"] = float(total or 0)
+        else:
+            data[key]["expense"] = float(total or 0)
+    return [data[k] for k in sorted(data.keys())]
+
+
 def balance_over_time(user_id: int) -> List[Tuple[str, float]]:
     rows = (
         Transaction.query.filter_by(user_id=user_id)

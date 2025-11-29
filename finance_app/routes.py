@@ -35,6 +35,7 @@ from finance_app.services import (
     total_balance,
     convert_to_base,
     user_base_currency,
+    summarize_monthly_income_expense,
 )
 
 main_bp = Blueprint("main", __name__)
@@ -97,9 +98,13 @@ def dashboard():
 
     category_totals = summarize_category_totals(current_user.id, start, end)
     monthly = summarize_monthly_spend(current_user.id)
+    monthly_ie = summarize_monthly_income_expense(current_user.id)
     balance_points = balance_over_time(current_user.id)
     budgets = budget_progress(current_user.id, date.today())
     remaining = total_balance(current_user.id, start, end)
+    top_categories_30 = summarize_category_totals(
+        current_user.id, date.today() - timedelta(days=30), date.today()
+    )
 
     recent_tx = (
         Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.date.desc()).limit(5).all()
@@ -115,6 +120,7 @@ def dashboard():
         income=income,
         category_totals=category_totals,
         monthly=monthly,
+        monthly_ie=monthly_ie,
         balance_points=balance_points,
         budgets=budgets,
         recent_tx=recent_tx,
@@ -123,6 +129,7 @@ def dashboard():
         remaining=remaining,
         goal=goal,
         goal_percent=goal_percent,
+        top_categories_30=top_categories_30,
     )
 
 
@@ -396,11 +403,13 @@ def delete_budget(budget_id):
 def reports():
     category_totals = summarize_category_totals(current_user.id)
     monthly = summarize_monthly_spend(current_user.id)
+    monthly_ie = summarize_monthly_income_expense(current_user.id)
     balance_points = balance_over_time(current_user.id)
     return render_template(
         "reports.html",
         category_totals=category_totals,
         monthly=monthly,
+        monthly_ie=monthly_ie,
         balance_points=balance_points,
     )
 

@@ -41,6 +41,16 @@
             </div>
         </div>
     </div>
+    <div class="col-12">
+        <div class="card glass-card chart-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">Income vs Expenses</h5>
+                </div>
+                <canvas id="incomeExpenseChart" height="240"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -49,6 +59,7 @@
     const categoryData = {{ category_totals|tojson }};
     const monthlyData = {{ monthly|tojson }};
     const balanceData = {{ balance_points|tojson }};
+    const monthlyIE = {{ monthly_ie|tojson }};
 
     const catCtx = document.getElementById('categoryChart');
     const categories = Object.keys(categoryData);
@@ -107,6 +118,39 @@
             scales: {
                 x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
                 y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+
+    const incomeExpenseCtx = document.getElementById('incomeExpenseChart');
+    const ieLabels = monthlyIE.map(m => m.month);
+    new Chart(incomeExpenseCtx, {
+        type: 'bar',
+        data: {
+            labels: ieLabels,
+            datasets: [
+                {
+                    label: 'Income',
+                    data: monthlyIE.map(m => m.income),
+                    backgroundColor: 'rgba(56, 217, 150, 0.6)',
+                    borderColor: '#38d996',
+                    borderWidth: 1,
+                },
+                {
+                    label: 'Expenses',
+                    data: monthlyIE.map(m => m.expense),
+                    backgroundColor: 'rgba(255, 107, 107, 0.6)',
+                    borderColor: '#ff6b6b',
+                    borderWidth: 1,
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#dfe7f5' } } },
+            scales: {
+                x: { stacked: true, ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { stacked: true, ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
             }
         }
     });

@@ -41,6 +41,13 @@ body.bg-surface {
     background: var(--bg-card);
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: var(--text);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    border-color: rgba(79, 179, 255, 0.3);
 }
 
 .card-title {
@@ -54,6 +61,12 @@ body.bg-surface {
 .btn-primary {
     background: linear-gradient(135deg, var(--primary), var(--primary-strong));
     border: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(24, 144, 255, 0.35);
 }
 
 .btn-outline-light {
@@ -130,6 +143,7 @@ label.form-label {
     border-radius: 12px;
     background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
     border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
 .stat-label {
@@ -159,4 +173,13 @@ label.form-label {
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.06);
     padding: 12px;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.chart-card, .glass-card, .stat-tile {
+    animation: fadeUp 0.4s ease;
 }

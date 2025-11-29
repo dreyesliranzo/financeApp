@@ -187,6 +187,35 @@
         </div>
     </div>
 </div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-6">
+        <div class="card glass-card chart-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="card-title mb-0">Income vs Expenses</h5>
+                        <small class="text-secondary">Stacked by month</small>
+                    </div>
+                </div>
+                <canvas id="incomeExpenseChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card glass-card chart-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="card-title mb-0">Top Categories (30d)</h5>
+                        <small class="text-secondary">Greatest spend past 30 days</small>
+                    </div>
+                </div>
+                <canvas id="topCategoriesChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -194,6 +223,8 @@
     const categoryData = {{ category_totals|tojson }};
     const monthlyData = {{ monthly|tojson }};
     const balanceData = {{ balance_points|tojson }};
+    const monthlyIE = {{ monthly_ie|tojson }};
+    const topCat = {{ top_categories_30|tojson }};
 
     const catCtx = document.getElementById('categoryChart');
     const categories = Object.keys(categoryData);
@@ -252,6 +283,64 @@
             scales: {
                 x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
                 y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+
+    const incomeExpenseCtx = document.getElementById('incomeExpenseChart');
+    const ieLabels = monthlyIE.map(m => m.month);
+    new Chart(incomeExpenseCtx, {
+        type: 'bar',
+        data: {
+            labels: ieLabels,
+            datasets: [
+                {
+                    label: 'Income',
+                    data: monthlyIE.map(m => m.income),
+                    backgroundColor: 'rgba(56, 217, 150, 0.6)',
+                    borderColor: '#38d996',
+                    borderWidth: 1,
+                },
+                {
+                    label: 'Expenses',
+                    data: monthlyIE.map(m => m.expense),
+                    backgroundColor: 'rgba(255, 107, 107, 0.6)',
+                    borderColor: '#ff6b6b',
+                    borderWidth: 1,
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#dfe7f5' } } },
+            scales: {
+                x: { stacked: true, ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { stacked: true, ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+
+    const topCatCtx = document.getElementById('topCategoriesChart');
+    const topCatEntries = Object.entries(topCat).sort((a,b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0,5);
+    new Chart(topCatCtx, {
+        type: 'bar',
+        data: {
+            labels: topCatEntries.map(e => e[0]),
+            datasets: [{
+                label: 'Spend',
+                data: topCatEntries.map(e => Math.abs(e[1])),
+                backgroundColor: 'rgba(255, 179, 71, 0.7)',
+                borderColor: '#ffb347',
+                borderWidth: 1,
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#dfe7f5' }, grid: { display: false } }
             }
         }
     });
