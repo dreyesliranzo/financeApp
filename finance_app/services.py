@@ -49,17 +49,20 @@ def summarize_category_totals(user_id: int, start: date = None, end: date = None
 
 
 def summarize_monthly_spend(user_id: int) -> List[Tuple[str, float]]:
+    """Aggregate by month (Postgres-friendly using date_trunc)."""
+    month_expr = func.date_trunc("month", Transaction.date).label("month")
     rows = (
         Transaction.query.filter_by(user_id=user_id)
-        .with_entities(func.strftime("%Y-%m", Transaction.date), Transaction.type, func.sum(Transaction.amount))
-        .group_by(func.strftime("%Y-%m", Transaction.date), Transaction.type)
-        .order_by(func.strftime("%Y-%m", Transaction.date))
+        .with_entities(month_expr, Transaction.type, func.sum(Transaction.amount))
+        .group_by(month_expr, Transaction.type)
+        .order_by(month_expr)
         .all()
     )
     monthly = defaultdict(float)
-    for month, t_type, total in rows:
+    for month_dt, t_type, total in rows:
+        month_label = month_dt.strftime("%Y-%m") if hasattr(month_dt, "strftime") else str(month_dt)
         sign = -1 if t_type == "expense" else 1
-        monthly[month] += sign * (total or 0)
+        monthly[month_label] += sign * (total or 0)
     return sorted(monthly.items())
 
 
