@@ -35,6 +35,9 @@
                     <a class="nav-link {% if request.endpoint and request.endpoint.startswith('main.budgets') %}active{% endif %}" href="{{ url_for('main.budgets') }}">Budgets</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'main.recurring' %}active{% endif %}" href="{{ url_for('main.recurring') }}">Recurring</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {% if request.endpoint == 'main.reports' %}active{% endif %}" href="{{ url_for('main.reports') }}">Reports</a>
                 </li>
                 <li class="nav-item">

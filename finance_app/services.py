@@ -1,11 +1,11 @@
 from collections import defaultdict
 from datetime import date
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 from sqlalchemy import func
 
 from finance_app import db
-from finance_app.models import Transaction, Budget
+from finance_app.models import Transaction, Budget, Category, UserSettings, CurrencyRate
 
 
 DEFAULT_CATEGORIES = [
@@ -23,6 +23,32 @@ DEFAULT_CATEGORIES = [
 ]
 
 
+def user_base_currency(user_id: int) -> str:
+    settings = UserSettings.query.filter_by(user_id=user_id).first()
+    return settings.base_currency if settings else "USD"
+
+
+def convert_to_base(user_id: int, amount: float, currency: Optional[str]) -> float:
+    base = user_base_currency(user_id)
+    if not currency or currency == base:
+        return amount
+    rate = CurrencyRate.query.filter_by(user_id=user_id, code=currency).first()
+    if rate:
+        return amount * rate.rate_to_base
+    return amount  # fallback 1:1 if no rate set
+
+
+def get_user_categories(user_id: int) -> List[str]:
+    custom = Category.query.filter_by(user_id=user_id).all()
+    names = [c.name for c in custom]
+    # merge defaults + custom unique
+    combined = []
+    for name in DEFAULT_CATEGORIES + names:
+        if name not in combined:
+            combined.append(name)
+    return combined
+
+
 def get_transactions_for_period(user_id: int, start: date = None, end: date = None, category: str = None):
     query = Transaction.query.filter_by(user_id=user_id)
     if start:
@@ -36,11 +62,8 @@ def get_transactions_for_period(user_id: int, start: date = None, end: date = No
 
 def summarize_category_totals(user_id: int, start: date = None, end: date = None) -> Dict[str, float]:
     query = get_transactions_for_period(user_id, start, end)
-    rows = (
-        query.with_entities(Transaction.category, Transaction.type, func.sum(Transaction.amount))
-        .group_by(Transaction.category, Transaction.type)
-        .all()
-    )
+    amount_expr = func.sum(Transaction.amount_base if Transaction.amount_base is not None else Transaction.amount)
+    rows = query.with_entities(Transaction.category, Transaction.type, amount_expr).group_by(Transaction.category, Transaction.type).all()
     totals = defaultdict(float)
     for category, t_type, total in rows:
         sign = -1 if t_type == "expense" else 1
@@ -53,7 +76,7 @@ def summarize_monthly_spend(user_id: int) -> List[Tuple[str, float]]:
     month_expr = func.date_trunc("month", Transaction.date).label("month")
     rows = (
         Transaction.query.filter_by(user_id=user_id)
-        .with_entities(month_expr, Transaction.type, func.sum(Transaction.amount))
+        .with_entities(month_expr, Transaction.type, func.sum(Transaction.amount_base if Transaction.amount_base is not None else Transaction.amount))
         .group_by(month_expr, Transaction.type)
         .order_by(month_expr)
         .all()
@@ -69,7 +92,7 @@ def summarize_monthly_spend(user_id: int) -> List[Tuple[str, float]]:
 def balance_over_time(user_id: int) -> List[Tuple[str, float]]:
     rows = (
         Transaction.query.filter_by(user_id=user_id)
-        .with_entities(Transaction.date, Transaction.type, Transaction.amount)
+        .with_entities(Transaction.date, Transaction.type, Transaction.amount_base if Transaction.amount_base is not None else Transaction.amount)
         .order_by(Transaction.date)
         .all()
     )
@@ -94,7 +117,7 @@ def budget_progress(user_id: int, on_date: date = None):
         tx_query = get_transactions_for_period(user_id, budget.period_start, budget.period_end, budget.category)
         spent = (
             tx_query.filter(Transaction.type == "expense")
-            .with_entities(func.sum(Transaction.amount))
+            .with_entities(func.sum(Transaction.amount_base if Transaction.amount_base is not None else Transaction.amount))
             .scalar()
             or 0
         )
@@ -107,9 +130,15 @@ def total_balance(user_id: int, start: date = None, end: date = None) -> float:
     """Income minus expenses for the given period."""
     tx_query = get_transactions_for_period(user_id, start, end)
     expenses = (
-        tx_query.filter(Transaction.type == "expense").with_entities(func.sum(Transaction.amount)).scalar() or 0
+        tx_query.filter(Transaction.type == "expense")
+        .with_entities(func.sum(Transaction.amount_base if Transaction.amount_base is not None else Transaction.amount))
+        .scalar()
+        or 0
     )
     income = (
-        tx_query.filter(Transaction.type == "income").with_entities(func.sum(Transaction.amount)).scalar() or 0
+        tx_query.filter(Transaction.type == "income")
+        .with_entities(func.sum(Transaction.amount_base if Transaction.amount_base is not None else Transaction.amount))
+        .scalar()
+        or 0
     )
     return income - expenses

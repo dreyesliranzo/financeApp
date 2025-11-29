@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
     <div>
@@ -144,7 +144,7 @@
                         <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light-subtle">
                             <div>
                                 <div class="fw-semibold">{{ tx.category }}</div>
-                                <small class="text-secondary">{{ tx.date.strftime('%Y-%m-%d') }} • {{ tx.description or 'No description' }}</small>
+                                <small class="text-secondary">{{ tx.date.strftime('%Y-%m-%d') • {{ tx.description or 'No description' }}</small>
                             </div>
                             <div class="fw-bold {% if tx.type == 'expense' %}text-danger{% else %}text-success{% endif %}">
                                 {% if tx.type == 'expense' %}-{% else %}+{% endif %}${{ '%.2f'|format(tx.amount) }}
@@ -166,12 +166,8 @@
                     </div>
                     <a class="text-decoration-none" href="{{ url_for('main.savings') }}">Manage</a>
                 </div>
-                {% if current_user.savings_goal %}
-                    {% set goal = current_user.savings_goal %}
-                    {% set percent = 0 %}
-                    {% if goal.target_amount > 0 %}
-                        {% set percent = (goal.current_amount / goal.target_amount * 100) %}
-                    {% endif %}
+                {% if goal %}
+                    {% set percent = goal_percent %}
                     <div class="d-flex justify-content-between">
                         <div class="fw-semibold">{{ goal.name }}</div>
                         <div class="text-end">
@@ -261,3 +257,4 @@
     });
 </script>
 {% endblock %}
+
