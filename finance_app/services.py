@@ -92,15 +92,20 @@ def summarize_monthly_spend(user_id: int) -> List[Tuple[str, float]]:
 def balance_over_time(user_id: int) -> List[Tuple[str, float]]:
     rows = (
         Transaction.query.filter_by(user_id=user_id)
-        .with_entities(Transaction.date, Transaction.type, Transaction.amount_base if Transaction.amount_base is not None else Transaction.amount)
+        .with_entities(
+            Transaction.date,
+            Transaction.type,
+            Transaction.amount_base if Transaction.amount_base is not None else Transaction.amount,
+        )
         .order_by(Transaction.date)
         .all()
     )
     balance_points = []
     running_total = 0.0
     for t_date, t_type, amount in rows:
+        amount_val = amount or 0.0
         sign = -1 if t_type == "expense" else 1
-        running_total += sign * amount
+        running_total += sign * amount_val
         balance_points.append((t_date.isoformat(), running_total))
     return balance_points
 
