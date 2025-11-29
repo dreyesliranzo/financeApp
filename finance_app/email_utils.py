@@ -3,17 +3,41 @@ import smtplib
 from email.message import EmailMessage
 from typing import Optional
 
+import requests
+
 
 def send_email(to_email: str, subject: str, body: str) -> Optional[str]:
     """
     Send an email using SMTP credentials in environment variables.
+    If SENDGRID_API_KEY is set, prefer SendGrid's Web API to avoid SMTP networking issues.
     Returns None on success, or a string error message on failure.
     """
+    sg_api_key = os.getenv("SENDGRID_API_KEY")
+    from_email_env = os.getenv("FROM_EMAIL")
+    if sg_api_key and from_email_env:
+        try:
+            resp = requests.post(
+                "https://api.sendgrid.com/v3/mail/send",
+                headers={"Authorization": f"Bearer {sg_api_key}", "Content-Type": "application/json"},
+                json={
+                    "personalizations": [{"to": [{"email": to_email}]}],
+                    "from": {"email": from_email_env},
+                    "subject": subject,
+                    "content": [{"type": "text/plain", "value": body}],
+                },
+                timeout=15,
+            )
+            if resp.status_code in (200, 202):
+                return None
+            # If API fails, fall back to SMTP
+        except Exception as exc:  # pragma: no cover - external service
+            pass
+
     smtp_host = os.getenv("SMTP_HOST")
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
     smtp_user = os.getenv("SMTP_USER")
     smtp_password = os.getenv("SMTP_PASSWORD")
-    from_email = os.getenv("FROM_EMAIL", smtp_user)
+    from_email = from_email_env or smtp_user
     use_tls = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
 
     if not smtp_host or not smtp_user or not smtp_password or not from_email:
