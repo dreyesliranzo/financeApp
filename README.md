@@ -27,8 +27,12 @@ py app.py
 Visit http://localhost:5000. First user: go to Register, create account, then log in.
 
 Password reset/username reminder:
-- Forgot password: submit your account email. A reset token is logged to the server console in this demo; use the link `/reset/<token>` to set a new password. In production, wire an email provider and send the link.
-- Forgot username: submit your email; the username is logged server-side in this demo (would be emailed in production).
+- Forgot password: submit your account email. A reset email is sent via SMTP if configured; otherwise it logs the token server-side. Visit `/reset/<token>` to set a new password.
+- Forgot username: submit your email; the username is emailed if SMTP is configured (otherwise logged server-side).
+
+SMTP (for real emails):
+- Set env vars: `SMTP_HOST`, `SMTP_PORT` (e.g., 587), `SMTP_USER`, `SMTP_PASSWORD`, `FROM_EMAIL` (defaults to `SMTP_USER`), `SMTP_USE_TLS=true/false`.
+- Without SMTP set, reset/username messages will only log to the server console.
 
 ## Deploy (Render/Fly/Railway style)
 - Add env vars in your host: `SECRET_KEY=<strong secret>`, `DATABASE_URL=<your db url>`. Use Postgres for multi-user hosting; set `DATABASE_URL` accordingly. SQLite can work only if the host provides a persistent disk.

@@ -7,6 +7,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 
 from finance_app import db, bcrypt
 from finance_app.models import User, PasswordReset
+from finance_app.email_utils import send_email
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -108,8 +109,19 @@ def forgot_password():
             reset = PasswordReset(user_id=user.id, token=token, expires_at=expires_at, used=False)
             db.session.add(reset)
             db.session.commit()
-            # In production, send an email. For now, log to server for manual use.
-            print(f"[Password reset] user={user.username} email={user.email} token={token}")
+            reset_link = url_for("auth.reset_password", token=token, _external=True)
+            email_body = (
+                f"Hi {user.username},\n\n"
+                f"We received a request to reset your password. Use the link below within 1 hour:\n\n"
+                f"{reset_link}\n\n"
+                "If you did not request this, you can ignore this email."
+            )
+            err = send_email(user.email, "Reset your Pulse Finance password", email_body)
+            if err:
+                # Log fallback for admins
+                print(f"[Password reset][email failed] user={user.username} email={user.email} token={token} err={err}")
+            else:
+                print(f"[Password reset][email sent] user={user.username} email={user.email}")
         return redirect(url_for("auth.login"))
     return render_template("forgot_password.html")
 
@@ -146,7 +158,15 @@ def forgot_username():
         user = User.query.filter_by(email=email).first()
         flash("If an account exists for this email, we sent the username.", "info")
         if user:
-            # In production send email; here log to server for manual reference
-            print(f"[Username reminder] email={email} username={user.username}")
+            email_body = (
+                f"Hi {user.username},\n\n"
+                f"Your username for Pulse Finance is: {user.username}\n\n"
+                "If you did not request this, you can ignore this email."
+            )
+            err = send_email(user.email, "Your Pulse Finance username", email_body)
+            if err:
+                print(f"[Username reminder][email failed] email={email} username={user.username} err={err}")
+            else:
+                print(f"[Username reminder][email sent] email={email} username={user.username}")
         return redirect(url_for("auth.login"))
     return render_template("forgot_username.html")
