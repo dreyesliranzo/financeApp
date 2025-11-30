@@ -291,6 +291,19 @@
             </div>
         </div>
     </div>
+    <div class="col-lg-12">
+        <div class="card glass-card chart-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="card-title mb-0">Pro Trend</h5>
+                        <small class="text-secondary">Trading-style balance view</small>
+                    </div>
+                </div>
+                <canvas id="proTrendChart" height="260"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -440,6 +453,41 @@
             plugins: { legend: { display: false } },
             scales: {
                 x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+
+    // Pro trend (trading-style) using balanceData
+    const proCtx = document.getElementById('proTrendChart');
+    const proLabels = balanceData.map(p => p[0]);
+    const proValues = balanceData.map(p => p[1]);
+    const gradient = proCtx.getContext('2d').createLinearGradient(0, 0, 0, proCtx.height);
+    gradient.addColorStop(0, 'rgba(79, 179, 255, 0.35)');
+    gradient.addColorStop(1, 'rgba(79, 179, 255, 0)');
+    new Chart(proCtx, {
+        type: 'line',
+        data: {
+            labels: proLabels,
+            datasets: [{
+                label: 'Balance',
+                data: proValues,
+                borderColor: '#4fb3ff',
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.25,
+                borderWidth: 2.5,
+                pointRadius: 0,
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: false },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                x: { ticks: { color: '#dfe7f5' }, grid: { display: false } },
                 y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
             }
         }
