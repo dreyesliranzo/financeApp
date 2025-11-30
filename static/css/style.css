@@ -225,3 +225,28 @@ label.form-label {
 .chart-card, .glass-card, .stat-tile {
     animation: fadeUp 0.4s ease;
 }
+
+@media (max-width: 768px) {
+    .navbar .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    .stat-tile {
+        margin-bottom: 0.5rem;
+    }
+    main.container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    .glass-card {
+        border-radius: 14px;
+    }
+    .chart-card {
+        min-height: 260px;
+    }
+}
+
+.onboarding-card {
+    border-style: dashed;
+    border-color: rgba(79, 179, 255, 0.4);
+}

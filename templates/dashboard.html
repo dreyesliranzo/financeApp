@@ -55,6 +55,29 @@
     </div>
 </div>
 
+{% if tx_count == 0 or budget_count == 0 or not goal %}
+<div class="card glass-card mb-3 onboarding-card">
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between">
+            <div>
+                <h5 class="card-title mb-1">Quick start</h5>
+                <p class="text-secondary mb-2">Complete these steps to get the most out of Pulse.</p>
+                <ul class="list-unstyled mb-0 text-secondary small">
+                    <li>{% if tx_count > 0 %}✅{% else %}⬜{% endif %} Add your first transaction</li>
+                    <li>{% if budget_count > 0 %}✅{% else %}⬜{% endif %} Set a budget</li>
+                    <li>{% if goal %}✅{% else %}⬜{% endif %} Create a savings goal</li>
+                </ul>
+            </div>
+            <div class="d-flex gap-2 mt-2 mt-md-0">
+                <a href="{{ url_for('main.add_transaction') }}" class="btn btn-primary btn-sm">Add transaction</a>
+                <a href="{{ url_for('main.budgets') }}" class="btn btn-outline-light btn-sm">Create budget</a>
+                <a href="{{ url_for('main.savings') }}" class="btn btn-outline-light btn-sm">Savings goal</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row g-3">
     <div class="col-lg-6">
         <div class="card glass-card chart-card">

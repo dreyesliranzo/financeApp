@@ -129,6 +129,8 @@ def dashboard():
     goal_percent = 0
     if goal and goal.target_amount > 0:
         goal_percent = min(goal.current_amount / goal.target_amount * 100, 999)
+    tx_count = Transaction.query.filter_by(user_id=current_user.id).count()
+    budget_count = Budget.query.filter_by(user_id=current_user.id).count()
 
     return render_template(
         "dashboard.html",
@@ -150,6 +152,8 @@ def dashboard():
         net_this_week=net_this_week,
         net_last_week=net_last_week,
         upcoming_recurring=upcoming_recurring,
+        tx_count=tx_count,
+        budget_count=budget_count,
     )
 
 

@@ -59,7 +59,7 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }} shadow-sm">{{ message }}</div>
+                <div class="alert alert-{{ category }} shadow-sm auto-dismiss">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
@@ -81,6 +81,16 @@
         btn.addEventListener('click', () => {
             const next = (localStorage.getItem('theme') === 'light') ? 'dark' : 'light';
             apply(next);
+        });
+    })();
+
+    (function() {
+        const alerts = document.querySelectorAll('.auto-dismiss');
+        alerts.forEach(a => {
+            setTimeout(() => {
+                a.classList.add('fade');
+                setTimeout(() => a.remove(), 300);
+            }, 4000);
         });
     })();
 </script>
