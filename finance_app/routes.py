@@ -37,6 +37,7 @@ from finance_app.services import (
     user_base_currency,
     summarize_monthly_income_expense,
     forecast_balance,
+    weekly_net,
 )
 
 main_bp = Blueprint("main", __name__)
@@ -107,6 +108,19 @@ def dashboard():
         current_user.id, date.today() - timedelta(days=30), date.today()
     )
     forecast = forecast_balance(current_user.id, 30)
+    # weekly deltas
+    today = date.today()
+    this_week_start = today - timedelta(days=today.weekday())
+    last_week_start = this_week_start - timedelta(days=7)
+    last_week_end = this_week_start - timedelta(days=1)
+    net_this_week = weekly_net(current_user.id, this_week_start, today)
+    net_last_week = weekly_net(current_user.id, last_week_start, last_week_end)
+    upcoming_recurring = (
+        RecurringRule.query.filter_by(user_id=current_user.id)
+        .order_by(RecurringRule.next_run.asc())
+        .limit(5)
+        .all()
+    )
 
     recent_tx = (
         Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.date.desc()).limit(5).all()
@@ -133,6 +147,9 @@ def dashboard():
         goal_percent=goal_percent,
         top_categories_30=top_categories_30,
         forecast=forecast,
+        net_this_week=net_this_week,
+        net_last_week=net_last_week,
+        upcoming_recurring=upcoming_recurring,
     )
 
 
@@ -154,6 +171,9 @@ def transactions():
         else:
             start = monday - timedelta(days=7)
             end = monday - timedelta(days=1)
+    elif range_filter == "30d":
+        end = date.today()
+        start = end - timedelta(days=30)
 
     query = get_transactions_for_period(current_user.id, start, end, category)
     if sort == "amount_asc":
@@ -525,7 +545,9 @@ def delete_recurring(rule_id):
 @login_required
 def settings():
     message = None
-    categories = get_user_categories(current_user.id)
+    categories = [(c.name, c.color) if hasattr(c, "color") else (c.name, None) for c in Category.query.filter_by(user_id=current_user.id).all()]
+    if not categories:
+        categories = [(c, None) for c in get_user_categories(current_user.id)]
     base_currency = user_base_currency(current_user.id)
     settings = UserSettings.query.filter_by(user_id=current_user.id).first()
     if not settings:
@@ -556,6 +578,7 @@ def settings():
             flash("Base currency updated.", "success")
         elif action == "add_category":
             name = request.form.get("category_name", "").strip()
+            color = request.form.get("category_color") or None
             if not name:
                 flash("Category name required.", "danger")
             else:
@@ -563,7 +586,7 @@ def settings():
                 if exists:
                     flash("Category already exists.", "warning")
                 else:
-                    db.session.add(Category(user_id=current_user.id, name=name))
+                    db.session.add(Category(user_id=current_user.id, name=name, color=color))
                     db.session.commit()
                     flash("Category added.", "success")
         elif action == "add_rate":

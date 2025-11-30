@@ -171,6 +171,10 @@ def forecast_balance(user_id: int, days: int = 30) -> List[Tuple[str, float]]:
     return projections
 
 
+def weekly_net(user_id: int, start: date, end: date) -> float:
+    return total_balance(user_id, start, end)
+
+
 def budget_progress(user_id: int, on_date: date = None):
     on_date = on_date or date.today()
     budgets = (

@@ -46,6 +46,7 @@
             </ul>
             <div class="d-flex align-items-center gap-3">
                 <span class="text-light small">Hi, {{ current_user.username }}</span>
+                <button class="btn btn-outline-light btn-sm" id="themeToggle" type="button">Theme</button>
                 <a class="btn btn-outline-light btn-sm" href="{{ url_for('main.settings') }}">Settings</a>
                 <a class="btn btn-danger btn-sm" href="{{ url_for('auth.logout') }}">Logout</a>
             </div>
@@ -67,10 +68,29 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    (function() {
+        const btn = document.getElementById('themeToggle');
+        if (!btn) return;
+        const apply = (mode) => {
+            document.documentElement.dataset.theme = mode;
+            localStorage.setItem('theme', mode);
+        };
+        const saved = localStorage.getItem('theme') || 'dark';
+        apply(saved);
+        btn.addEventListener('click', () => {
+            const next = (localStorage.getItem('theme') === 'light') ? 'dark' : 'light';
+            apply(next);
+        });
+    })();
+</script>
 {% block scripts %}{% endblock %}
 
 <footer class="text-center text-secondary small py-4">
     © {{ now().year if now else '' }} Pulse Finance · Diego Reyes. All rights reserved.
 </footer>
+{% if current_user.is_authenticated %}
+<button class="fab" onclick="window.location.href='{{ url_for('main.add_transaction') }}'">+</button>
+{% endif %}
 </body>
 </html>

@@ -43,6 +43,7 @@
             <a class="btn btn-secondary" href="{{ url_for('main.transactions') }}">Reset</a>
             <a class="btn btn-sm btn-outline-info" href="{{ url_for('main.transactions', range='this_week') }}">This week</a>
             <a class="btn btn-sm btn-outline-info" href="{{ url_for('main.transactions', range='last_week') }}">Last week</a>
+            <a class="btn btn-sm btn-outline-info" href="{{ url_for('main.transactions', range='30d') }}">Last 30d</a>
         </div>
     </div>
 </form>

@@ -9,6 +9,17 @@
     --danger: #ff6b6b;
 }
 
+:root[data-theme='light'] {
+    --bg: #f4f6fb;
+    --bg-card: rgba(255, 255, 255, 0.9);
+    --primary: #2563eb;
+    --primary-strong: #1d4ed8;
+    --text: #0f172a;
+    --muted: #64748b;
+    --success: #16a34a;
+    --danger: #e11d48;
+}
+
 * {
     font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
 }
@@ -173,6 +184,29 @@ label.form-label {
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.06);
     padding: 12px;
+}
+
+.fab {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 1000;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    border: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 35px rgba(0,0,0,0.4);
 }
 
 @keyframes fadeUp {
