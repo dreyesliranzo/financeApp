@@ -7,6 +7,9 @@
     --muted: #8fa3c1;
     --success: #38d996;
     --danger: #ff6b6b;
+    --btn-ghost-text: #fff;
+    --btn-ghost-border: rgba(255, 255, 255, 0.3);
+    --btn-ghost-hover: rgba(79, 179, 255, 0.15);
 }
 
 :root[data-theme='light'] {
@@ -18,6 +21,9 @@
     --muted: #64748b;
     --success: #16a34a;
     --danger: #e11d48;
+    --btn-ghost-text: #0f172a;
+    --btn-ghost-border: rgba(15, 23, 42, 0.3);
+    --btn-ghost-hover: rgba(37, 99, 235, 0.12);
 }
 
 :root[data-theme='sand'] {
@@ -29,6 +35,9 @@
     --muted: #6b5b43;
     --success: #16a34a;
     --danger: #dc2626;
+    --btn-ghost-text: #3f2f1c;
+    --btn-ghost-border: rgba(63, 47, 28, 0.35);
+    --btn-ghost-hover: rgba(245, 158, 11, 0.12);
 }
 
 * {
@@ -115,8 +124,14 @@ body.bg-surface {
 }
 
 .btn-outline-light {
-    border-color: rgba(255, 255, 255, 0.3);
-    color: #fff;
+    border-color: var(--btn-ghost-border);
+    color: var(--btn-ghost-text);
+    background: transparent;
+}
+
+.btn-outline-light:hover {
+    background: var(--btn-ghost-hover);
+    color: var(--btn-ghost-text);
 }
 
 .table {
