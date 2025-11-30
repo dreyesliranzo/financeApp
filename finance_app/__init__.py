@@ -64,6 +64,15 @@ def create_app(test_config=None):
             except Exception:
                 db.session.rollback()
 
+        # Ensure new columns on categories
+        cat_columns = [c["name"] for c in inspector.get_columns("categories")]
+        if "color" not in cat_columns:
+            try:
+                db.session.execute(text("ALTER TABLE categories ADD COLUMN color VARCHAR(16)"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
         # Ensure new tables exist (create_all already covers new DBs)
         existing_tables = inspector.get_table_names()
         if "savings_goals" not in existing_tables:

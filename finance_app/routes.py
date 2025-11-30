@@ -408,12 +408,14 @@ def reports():
     monthly = summarize_monthly_spend(current_user.id)
     monthly_ie = summarize_monthly_income_expense(current_user.id)
     balance_points = balance_over_time(current_user.id)
+    forecast = forecast_balance(current_user.id, 30)
     return render_template(
         "reports.html",
         category_totals=category_totals,
         monthly=monthly,
         monthly_ie=monthly_ie,
         balance_points=balance_points,
+        forecast=forecast,
     )
 
 
