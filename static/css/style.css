@@ -116,11 +116,23 @@ body.bg-surface {
     background: linear-gradient(135deg, var(--primary), var(--primary-strong));
     border: none;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
+    color: #fff;
 }
 
 .btn-primary:hover {
     transform: translateY(-1px);
     box-shadow: 0 10px 25px rgba(24, 144, 255, 0.35);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger), #b91c1c);
+    border: none;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(220, 38, 38, 0.35);
 }
 
 .btn-outline-light {
