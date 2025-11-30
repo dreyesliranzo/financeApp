@@ -189,6 +189,43 @@
 </div>
 
 <div class="row g-3 mt-1">
+    <div class="col-lg-12">
+        <div class="card glass-card">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="stat-tile">
+                            <div>
+                                <div class="stat-label">This Week Net</div>
+                                <div class="stat-value {% if net_this_week < 0 %}text-danger{% else %}text-success{% endif %}">
+                                    {{ '%.2f'|format(net_this_week) }}
+                                </div>
+                                <small class="text-secondary">vs last week: {{ '%.2f'|format(net_last_week) }}</small>
+                            </div>
+                            {% set delta = net_this_week - net_last_week %}
+                            <span class="avatar-dot" style="background:{% if delta < 0 %}#ff6b6b{% else %}#38d996{% endif %}"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stat-tile">
+                            <div>
+                                <div class="stat-label">Upcoming Recurring</div>
+                                {% if upcoming_recurring %}
+                                    <div class="text-secondary small">
+                                        {% for r in upcoming_recurring %}
+                                            <div>{{ r.next_run }} • {{ r.name }} ({{ r.type }}) - {{ r.currency or '' }}{{ '%.2f'|format(r.amount) }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <small class="text-secondary">No upcoming items.</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="col-lg-6">
         <div class="card glass-card chart-card">
             <div class="card-body">
