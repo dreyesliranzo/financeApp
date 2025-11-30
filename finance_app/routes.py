@@ -667,9 +667,8 @@ def delete_recurring(rule_id):
 @login_required
 def settings():
     message = None
-    categories = [(c.name, c.color) if hasattr(c, "color") else (c.name, None) for c in Category.query.filter_by(user_id=current_user.id).all()]
-    if not categories:
-        categories = [(c, None) for c in get_user_categories(current_user.id)]
+    categories_q = Category.query.filter_by(user_id=current_user.id).all()
+    categories = [(c.name, c.color) for c in categories_q] if categories_q else [(c, None) for c in get_user_categories(current_user.id)]
     base_currency = user_base_currency(current_user.id)
     settings = UserSettings.query.filter_by(user_id=current_user.id).first()
     if not settings:
@@ -729,6 +728,11 @@ def settings():
                     rate.rate_to_base = rate_val
                 db.session.commit()
                 flash("Rate saved.", "success")
+        elif action == "alerts":
+            settings.alert_large = float(request.form.get("alert_large") or 0) or None
+            settings.alert_budget_pct = float(request.form.get("alert_budget_pct") or 0) or None
+            db.session.commit()
+            flash("Alerts updated.", "success")
         return redirect(url_for("main.settings"))
 
     rates = CurrencyRate.query.filter_by(user_id=current_user.id).all()
@@ -739,6 +743,7 @@ def settings():
         base_currency=base_currency,
         rates=rates,
         currencies=BASE_CURRENCIES,
+        settings=settings,
     )
 
 
