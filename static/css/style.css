@@ -43,6 +43,29 @@ body.bg-surface {
     z-index: 0;
 }
 
+.corner-shape {
+    position: fixed;
+    z-index: 0;
+    filter: blur(80px);
+    opacity: 0.35;
+}
+
+.shape-1 {
+    width: 320px;
+    height: 320px;
+    top: -60px;
+    right: -80px;
+    background: radial-gradient(circle, rgba(79, 179, 255, 0.5), transparent 55%);
+}
+
+.shape-2 {
+    width: 220px;
+    height: 220px;
+    bottom: -40px;
+    left: -60px;
+    background: radial-gradient(circle, rgba(56, 217, 150, 0.4), transparent 55%);
+}
+
 .navbar {
     background: rgba(255, 255, 255, 0.05) !important;
     backdrop-filter: blur(10px);

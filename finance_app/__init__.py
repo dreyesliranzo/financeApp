@@ -73,6 +73,19 @@ def create_app(test_config=None):
             except Exception:
                 db.session.rollback()
 
+        # Ensure new columns on user_settings
+        settings_columns = []
+        try:
+            settings_columns = [c["name"] for c in inspector.get_columns("user_settings")]
+        except Exception:
+            pass
+        if settings_columns and "filter_preset" not in settings_columns:
+            try:
+                db.session.execute(text("ALTER TABLE user_settings ADD COLUMN filter_preset TEXT"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
         # Ensure new tables exist (create_all already covers new DBs)
         existing_tables = inspector.get_table_names()
         if "savings_goals" not in existing_tables:

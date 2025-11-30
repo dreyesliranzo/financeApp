@@ -91,15 +91,25 @@
         {% endif %}
         <div class="d-flex justify-content-between align-items-center mt-3">
             <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-light" id="toggleDensity">Toggle Compact</button>
+                <button class="btn btn-sm btn-outline-light" id="toggleDensity" type="button">Toggle Compact</button>
             </div>
             <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-info" id="savePreset">Save Filter Preset</button>
-                <button class="btn btn-sm btn-outline-info" id="loadPreset">Load Preset</button>
+                <button class="btn btn-sm btn-outline-info" id="savePreset" type="button">Save Filter Preset</button>
+                <button class="btn btn-sm btn-outline-info" id="loadPreset" type="button">Load Preset</button>
             </div>
         </div>
     </div>
 </div>
+
+<form id="presetForm" method="POST" action="{{ url_for('main.transactions') }}">
+    <input type="hidden" name="action" value="">
+    <input type="hidden" name="start" value="">
+    <input type="hidden" name="end" value="">
+    <input type="hidden" name="category" value="">
+    <input type="hidden" name="sort" value="">
+    <input type="hidden" name="range" value="">
+    {{ csrf_field() if false }}
+</form>
 
 {% block scripts %}
 <script>
@@ -107,6 +117,7 @@
     const toggleBtn = document.getElementById('toggleDensity');
     const saveBtn = document.getElementById('savePreset');
     const loadBtn = document.getElementById('loadPreset');
+    const presetForm = document.getElementById('presetForm');
 
     const applyDensity = () => {
         const mode = localStorage.getItem('txDensity') || 'regular';
@@ -124,28 +135,20 @@
     });
 
     saveBtn?.addEventListener('click', () => {
-        const data = {
-            start: document.querySelector('input[name="start"]')?.value || '',
-            end: document.querySelector('input[name="end"]')?.value || '',
-            category: document.querySelector('select[name="category"]')?.value || '',
-            sort: document.querySelector('select[name="sort"]')?.value || '',
-        };
-        localStorage.setItem('txPreset', JSON.stringify(data));
-        alert('Preset saved');
+        if (!presetForm) return;
+        presetForm.querySelector('input[name="action"]').value = 'save_preset';
+        presetForm.querySelector('input[name="start"]').value = document.querySelector('input[name="start"]')?.value || '';
+        presetForm.querySelector('input[name="end"]').value = document.querySelector('input[name="end"]')?.value || '';
+        presetForm.querySelector('input[name="category"]').value = document.querySelector('select[name="category"]')?.value || '';
+        presetForm.querySelector('input[name="sort"]').value = document.querySelector('select[name="sort"]')?.value || '';
+        presetForm.querySelector('input[name="range"]').value = "{{ range_filter or '' }}";
+        presetForm.submit();
     });
 
     loadBtn?.addEventListener('click', () => {
-        const raw = localStorage.getItem('txPreset');
-        if (!raw) return alert('No preset saved');
-        try {
-            const data = JSON.parse(raw);
-            if (data.start) document.querySelector('input[name="start"]').value = data.start;
-            if (data.end) document.querySelector('input[name="end"]').value = data.end;
-            if (data.category) document.querySelector('select[name="category"]').value = data.category;
-            if (data.sort) document.querySelector('select[name="sort"]').value = data.sort;
-        } catch (e) {
-            console.error(e);
-        }
+        if (!presetForm) return;
+        presetForm.querySelector('input[name="action"]').value = 'load_preset';
+        presetForm.submit();
     });
 </script>
 {% endblock %}

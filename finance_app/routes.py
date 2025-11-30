@@ -1,6 +1,7 @@
 from datetime import date, datetime, timedelta
 import csv
 import io
+import json
 
 from flask import (
     Blueprint,
@@ -157,9 +158,34 @@ def dashboard():
     )
 
 
-@main_bp.route("/transactions")
+@main_bp.route("/transactions", methods=["GET", "POST"])
 @login_required
 def transactions():
+    settings = UserSettings.query.filter_by(user_id=current_user.id).first()
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action == "save_preset":
+            preset = {
+                "start": request.form.get("start") or "",
+                "end": request.form.get("end") or "",
+                "category": request.form.get("category") or "",
+                "sort": request.form.get("sort") or "date_desc",
+                "range": request.form.get("range") or "",
+            }
+            if settings:
+                settings.filter_preset = json.dumps(preset)
+            else:
+                settings = UserSettings(user_id=current_user.id, base_currency="USD", filter_preset=json.dumps(preset))
+                db.session.add(settings)
+            db.session.commit()
+            flash("Filter preset saved to your account.", "success")
+            return redirect(url_for("main.transactions", **preset))
+        if action == "load_preset" and settings and settings.filter_preset:
+            try:
+                preset = json.loads(settings.filter_preset)
+            except Exception:
+                preset = {}
+            return redirect(url_for("main.transactions", **preset))
     sort = request.args.get("sort", "date_desc")
     start = _parse_date(request.args.get("start"))
     end = _parse_date(request.args.get("end"))
