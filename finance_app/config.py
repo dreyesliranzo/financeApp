@@ -26,3 +26,6 @@ class Config:
     DB_PATH = normalize_db_url(raw_url)
     SQLALCHEMY_DATABASE_URI = DB_PATH
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+    }
