@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import date
+from datetime import date, timedelta
 from typing import Dict, List, Tuple, Optional
 
 from sqlalchemy import func
@@ -130,6 +130,45 @@ def balance_over_time(user_id: int) -> List[Tuple[str, float]]:
         running_total += sign * amount_val
         balance_points.append((t_date.isoformat(), running_total))
     return balance_points
+
+
+def forecast_balance(user_id: int, days: int = 30) -> List[Tuple[str, float]]:
+    """Simple forecast: start from current balance, project daily average from last 90 days + recurring rules."""
+    # current balance
+    current = total_balance(user_id)
+    today = date.today()
+    start_window = today - timedelta(days=90)
+    txs = get_transactions_for_period(user_id, start_window, today).all()
+    if txs:
+        daily_net = total_balance(user_id, start_window, today) / 90.0
+    else:
+        daily_net = 0.0
+
+    # Add recurring rules impact
+    from finance_app.models import RecurringRule
+
+    rules = RecurringRule.query.filter_by(user_id=user_id).all()
+    projections = []
+    running = current
+    for i in range(1, days + 1):
+        day = today + timedelta(days=i)
+        # apply daily average
+        running += daily_net
+        # add recurring rules that would hit on this day
+        for rule in rules:
+            # rough check by frequency
+            delta = (day - rule.next_run).days
+            if rule.frequency == "daily":
+                hit = delta % 1 == 0 and delta >= 0
+            elif rule.frequency == "weekly":
+                hit = delta % 7 == 0 and delta >= 0
+            else:
+                hit = delta % 30 == 0 and delta >= 0
+            if hit:
+                sign = -1 if rule.type == "expense" else 1
+                running += sign * convert_to_base(user_id, rule.amount, rule.currency)
+        projections.append((day.isoformat(), running))
+    return projections
 
 
 def budget_progress(user_id: int, on_date: date = None):

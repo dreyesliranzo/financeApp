@@ -36,6 +36,7 @@ from finance_app.services import (
     convert_to_base,
     user_base_currency,
     summarize_monthly_income_expense,
+    forecast_balance,
 )
 
 main_bp = Blueprint("main", __name__)
@@ -105,6 +106,7 @@ def dashboard():
     top_categories_30 = summarize_category_totals(
         current_user.id, date.today() - timedelta(days=30), date.today()
     )
+    forecast = forecast_balance(current_user.id, 30)
 
     recent_tx = (
         Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.date.desc()).limit(5).all()
@@ -130,6 +132,7 @@ def dashboard():
         goal=goal,
         goal_percent=goal_percent,
         top_categories_30=top_categories_30,
+        forecast=forecast,
     )
 
 

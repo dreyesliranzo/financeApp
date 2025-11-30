@@ -60,6 +60,7 @@
     const monthlyData = {{ monthly|tojson }};
     const balanceData = {{ balance_points|tojson }};
     const monthlyIE = {{ monthly_ie|tojson }};
+    const forecastData = {{ forecast|tojson }};
 
     const catCtx = document.getElementById('categoryChart');
     const categories = Object.keys(categoryData);
@@ -151,6 +152,29 @@
             scales: {
                 x: { stacked: true, ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
                 y: { stacked: true, ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+
+    const forecastCtx = document.getElementById('forecastChart');
+    new Chart(forecastCtx, {
+        type: 'line',
+        data: {
+            labels: forecastData.map(p => p[0]),
+            datasets: [{
+                label: 'Projected Balance',
+                data: forecastData.map(p => p[1]),
+                fill: false,
+                borderColor: '#a78bfa',
+                backgroundColor: 'rgba(167, 139, 250, 0.2)',
+                tension: 0.3,
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
             }
         }
     });

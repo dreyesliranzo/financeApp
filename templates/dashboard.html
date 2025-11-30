@@ -144,7 +144,7 @@
                         <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light-subtle">
                             <div>
                                 <div class="fw-semibold">{{ tx.category }}</div>
-                                <small class="text-secondary">{{ tx.date.strftime('%Y-%m-%d') }} • {{ tx.description or 'No description' }}</small>
+                                <small class="text-secondary">{{ tx.date.strftime('%Y-%m-%d') }} � {{ tx.description or 'No description' }}</small>
                             </div>
                             <div class="fw-bold {% if tx.type == 'expense' %}text-danger{% else %}text-success{% endif %}">
                                 {% if tx.type == 'expense' %}-{% else %}+{% endif %}${{ '%.2f'|format(tx.amount) }}
@@ -216,6 +216,22 @@
         </div>
     </div>
 </div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-12">
+        <div class="card glass-card chart-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="card-title mb-0">Forecast</h5>
+                        <small class="text-secondary">Projected balance next 30 days</small>
+                    </div>
+                </div>
+                <canvas id="forecastChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -225,6 +241,7 @@
     const balanceData = {{ balance_points|tojson }};
     const monthlyIE = {{ monthly_ie|tojson }};
     const topCat = {{ top_categories_30|tojson }};
+    const forecastData = {{ forecast|tojson }};
 
     const catCtx = document.getElementById('categoryChart');
     const categories = Object.keys(categoryData);
@@ -344,6 +361,30 @@
             }
         }
     });
+
+    const forecastCtx = document.getElementById('forecastChart');
+    new Chart(forecastCtx, {
+        type: 'line',
+        data: {
+            labels: forecastData.map(p => p[0]),
+            datasets: [{
+                label: 'Projected Balance',
+                data: forecastData.map(p => p[1]),
+                fill: false,
+                borderColor: '#a78bfa',
+                backgroundColor: 'rgba(167, 139, 250, 0.2)',
+                tension: 0.3,
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
 </script>
 {% endblock %}
+
 
