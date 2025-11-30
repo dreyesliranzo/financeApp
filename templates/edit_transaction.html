@@ -49,6 +49,13 @@
                             <label class="form-label">Description</label>
                             <textarea class="form-control" name="description" rows="2">{{ tx.description }}</textarea>
                         </div>
+                        <div class="col-12">
+                            <label class="form-label">Receipt (optional)</label>
+                            <input type="file" class="form-control" name="receipt" accept=".png,.jpg,.jpeg,.pdf">
+                            {% if tx.attachments %}
+                                <small class="text-secondary">Existing: <a class="text-decoration-none" href="{{ url_for('main.attachment', filename=tx.attachments[0].filename) }}">{{ tx.attachments[0].original_name }}</a></small>
+                            {% endif %}
+                        </div>
                     </div>
                     <button class="btn btn-primary w-100 mt-3">Update</button>
                 </form>

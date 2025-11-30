@@ -71,12 +71,18 @@
                             {{ tx.type.title() }}
                         </span>
                     </td>
-                    <td>{{ tx.category }}</td>
+                    <td>
+                        {% set col = cat_colors.get(tx.category) if cat_colors else None %}
+                        <span class="badge" style="background-color: {{ col or '#6c757d' }};">{{ tx.category }}</span>
+                    </td>
                     <td>{{ tx.description or '-' }}</td>
                     <td class="text-end {% if tx.type == 'expense' %}text-danger{% else %}text-success{% endif %}">
                         {% if tx.type == 'expense' %}-{% else %}+{% endif %}${{ '%.2f'|format(tx.amount) }}
                     </td>
                     <td class="text-end">
+                        {% if tx.attachments %}
+                            <a class="text-decoration-none me-1" href="{{ url_for('main.attachment', filename=tx.attachments[0].filename) }}">📎</a>
+                        {% endif %}
                         <a href="{{ url_for('main.edit_transaction', tx_id=tx.id) }}" class="btn btn-sm btn-outline-light">Edit</a>
                         <form action="{{ url_for('main.delete_transaction', tx_id=tx.id) }}" method="post" class="d-inline" onsubmit="return confirm('Delete this transaction?');">
                             <button class="btn btn-sm btn-danger">Delete</button>

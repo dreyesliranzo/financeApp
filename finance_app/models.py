@@ -128,6 +128,8 @@ class UserSettings(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, unique=True)
     base_currency = db.Column(db.String(8), nullable=False, default="USD")
     filter_preset = db.Column(db.Text, nullable=True)
+    alert_large = db.Column(db.Float, nullable=True)  # threshold for large tx alerts
+    alert_budget_pct = db.Column(db.Float, nullable=True)  # e.g., 90 for 90%
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -151,3 +153,15 @@ class RecurringRule(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = db.relationship("User", backref=db.backref("recurring_rules", lazy=True, cascade="all, delete-orphan"))
+
+
+class Attachment(db.Model):
+    __tablename__ = "attachments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    transaction_id = db.Column(db.Integer, db.ForeignKey("transactions.id"), nullable=False, index=True)
+    filename = db.Column(db.String(255), nullable=False)
+    original_name = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    transaction = db.relationship("Transaction", backref=db.backref("attachments", lazy=True, cascade="all, delete-orphan"))

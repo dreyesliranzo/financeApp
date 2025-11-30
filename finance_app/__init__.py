@@ -28,7 +28,7 @@ def create_app(test_config=None):
         # Local import to avoid circular dependencies
         from finance_app.routes import main_bp
         from finance_app.auth import auth_bp
-        from finance_app.models import User, SavingsGoal, Category, CurrencyRate, UserSettings, RecurringRule
+        from finance_app.models import User, SavingsGoal, Category, CurrencyRate, UserSettings, RecurringRule, Attachment
         from sqlalchemy import inspect, text
 
         db.create_all()
@@ -85,12 +85,24 @@ def create_app(test_config=None):
                 db.session.commit()
             except Exception:
                 db.session.rollback()
+        if settings_columns and "alert_large" not in settings_columns:
+            try:
+                db.session.execute(text("ALTER TABLE user_settings ADD COLUMN alert_large FLOAT"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+        if settings_columns and "alert_budget_pct" not in settings_columns:
+            try:
+                db.session.execute(text("ALTER TABLE user_settings ADD COLUMN alert_budget_pct FLOAT"))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
 
         # Ensure new tables exist (create_all already covers new DBs)
         existing_tables = inspector.get_table_names()
         if "savings_goals" not in existing_tables:
             db.create_all()
-        for tbl in ["categories", "currency_rates", "user_settings", "recurring_rules"]:
+        for tbl in ["categories", "currency_rates", "user_settings", "recurring_rules", "attachments"]:
             if tbl not in existing_tables:
                 db.create_all()
 

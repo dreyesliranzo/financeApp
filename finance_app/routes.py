@@ -12,6 +12,7 @@ from flask import (
     request,
     send_file,
     Response,
+    send_from_directory,
 )
 from flask_login import login_required, current_user
 
@@ -24,6 +25,7 @@ from finance_app.models import (
     CurrencyRate,
     UserSettings,
     RecurringRule,
+    Attachment,
 )
 from finance_app.services import (
     DEFAULT_CATEGORIES,
@@ -40,6 +42,8 @@ from finance_app.services import (
     forecast_balance,
     weekly_net,
 )
+from finance_app.email_utils import send_email
+from werkzeug.utils import secure_filename
 
 main_bp = Blueprint("main", __name__)
 BASE_CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD", "JPY", "MXN"]
@@ -50,6 +54,32 @@ def _parse_date(value: str):
         return datetime.strptime(value, "%Y-%m-%d").date()
     except (TypeError, ValueError):
         return None
+
+
+def _save_attachment(transaction_id: int):
+    file = request.files.get("receipt")
+    if not file or not file.filename:
+        return
+    from finance_app.config import Config
+
+    filename = secure_filename(file.filename)
+    upload_folder = Config.UPLOAD_FOLDER
+    os.makedirs(upload_folder, exist_ok=True)
+    path = os.path.join(upload_folder, filename)
+    file.save(path)
+    attach = Attachment(transaction_id=transaction_id, filename=filename, original_name=file.filename)
+    db.session.add(attach)
+    db.session.commit()
+
+
+def _maybe_send_alerts(tx: Transaction, settings: UserSettings):
+    if not settings:
+        return
+    # Large transaction alert
+    if settings.alert_large and tx.amount >= settings.alert_large:
+        subj = "Pulse alert: Large transaction"
+        body = f"A {tx.type} of {tx.currency or ''}{tx.amount:.2f} in {tx.category} on {tx.date}"
+        send_email(current_user.email, subj, body)
 
 
 @main_bp.route("/")
@@ -186,6 +216,14 @@ def transactions():
             except Exception:
                 preset = {}
             return redirect(url_for("main.transactions", **preset))
+        if action == "alerts":
+            settings = settings or UserSettings(user_id=current_user.id, base_currency="USD")
+            settings.alert_large = float(request.form.get("alert_large") or 0) or None
+            settings.alert_budget_pct = float(request.form.get("alert_budget_pct") or 0) or None
+            db.session.add(settings)
+            db.session.commit()
+            flash("Alerts updated.", "success")
+            return redirect(url_for("main.settings"))
     sort = request.args.get("sort", "date_desc")
     start = _parse_date(request.args.get("start"))
     end = _parse_date(request.args.get("end"))
@@ -216,6 +254,7 @@ def transactions():
         query = query.order_by(Transaction.date.desc())
 
     transactions_list = query.all()
+    cat_colors = {c.name: c.color for c in Category.query.filter_by(user_id=current_user.id).all()}
     return render_template(
         "transactions.html",
         transactions=transactions_list,
@@ -225,6 +264,7 @@ def transactions():
         start=request.args.get("start"),
         end=request.args.get("end"),
         range_filter=range_filter,
+        cat_colors=cat_colors,
     )
 
 
@@ -284,6 +324,8 @@ def add_transaction():
         )
         db.session.add(tx)
         db.session.commit()
+        _save_attachment(tx.id)
+        _maybe_send_alerts(tx, settings=UserSettings.query.filter_by(user_id=current_user.id).first())
         flash("Transaction added.", "success")
         return redirect(url_for("main.transactions"))
 
@@ -347,6 +389,7 @@ def edit_transaction(tx_id):
         tx.amount_base = convert_to_base(current_user.id, amount, currency)
         tx.description = description
         db.session.commit()
+        _save_attachment(tx.id)
         flash("Transaction updated.", "success")
         return redirect(url_for("main.transactions"))
 
@@ -559,6 +602,55 @@ def recurring():
         base_currency=base_currency,
         today=date.today().isoformat(),
     )
+
+
+@main_bp.route("/attachments/<filename>")
+@login_required
+def attachment(filename):
+    from finance_app.config import Config
+
+    return send_from_directory(Config.UPLOAD_FOLDER, filename, as_attachment=True)
+
+
+@main_bp.route("/transactions/import", methods=["GET", "POST"])
+@login_required
+def import_transactions():
+    if request.method == "POST":
+        file = request.files.get("csv_file")
+        if not file or not file.filename.endswith(".csv"):
+            flash("Please upload a CSV file.", "danger")
+            return redirect(url_for("main.import_transactions"))
+        content = file.read().decode("utf-8", errors="ignore")
+        reader = csv.DictReader(io.StringIO(content))
+        count = 0
+        for row in reader:
+            try:
+                t_date = _parse_date(row.get("date")) or date.today()
+                t_type = row.get("type", "expense").lower()
+                category = row.get("category", "Other")
+                amount = float(row.get("amount", 0))
+                description = row.get("description", "")
+                currency = row.get("currency") or user_base_currency(current_user.id)
+            except Exception:
+                continue
+            if amount <= 0 or t_type not in ["expense", "income"]:
+                continue
+            tx = Transaction(
+                user_id=current_user.id,
+                date=t_date,
+                type=t_type,
+                category=category,
+                amount=amount,
+                currency=currency,
+                amount_base=convert_to_base(current_user.id, amount, currency),
+                description=description,
+            )
+            db.session.add(tx)
+            count += 1
+        db.session.commit()
+        flash(f"Imported {count} transactions.", "success")
+        return redirect(url_for("main.transactions"))
+    return render_template("import_transactions.html")
 
 
 @main_bp.route("/recurring/<int:rule_id>/delete", methods=["POST"])

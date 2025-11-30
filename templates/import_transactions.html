@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card glass-card">
+            <div class="card-body">
+                <h3 class="card-title mb-2">Import Transactions</h3>
+                <p class="text-secondary">Upload a CSV with headers: date,type,category,amount,description,currency</p>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">CSV File</label>
+                        <input type="file" class="form-control" name="csv_file" accept=".csv" required>
+                    </div>
+                    <button class="btn btn-primary">Upload &amp; Import</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

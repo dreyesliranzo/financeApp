@@ -31,3 +31,4 @@ class Config:
         "pool_recycle": 280,
         "pool_timeout": 30,
     }
+    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", str(BASE_DIR.parent / "static" / "uploads"))
