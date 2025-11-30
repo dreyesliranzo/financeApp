@@ -12,6 +12,7 @@ def normalize_db_url(url: str) -> str:
     host = parsed.hostname or ""
     is_internal = "internal" in host  # Render internal URLs should not force sslmode=require
 
+    # Only force sslmode=require for external hosts when not already set
     if url.startswith("postgresql") and "sslmode=" not in url and not is_internal:
         sep = "&" if "?" in url else "?"
         url = f"{url}{sep}sslmode=require"
