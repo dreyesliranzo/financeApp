@@ -82,6 +82,34 @@ def _maybe_send_alerts(tx: Transaction, settings: UserSettings):
         send_email(current_user.email, subj, body)
 
 
+def _check_budget_alerts(tx: Transaction, settings: UserSettings):
+    if not settings or not settings.alert_budget_pct:
+        return
+    budgets = (
+        Budget.query.filter_by(user_id=tx.user_id)
+        .filter(Budget.period_start <= tx.date, Budget.period_end >= tx.date)
+        .all()
+    )
+    for budget in budgets:
+        spent = (
+            Transaction.query.filter_by(user_id=tx.user_id)
+            .filter(Transaction.date >= budget.period_start, Transaction.date <= budget.period_end)
+            .filter(Transaction.type == "expense")
+            .filter(Transaction.category == budget.category if budget.category else True)
+            .with_entities(
+                db.func.sum(db.func.coalesce(Transaction.amount_base, Transaction.amount))
+            )
+            .scalar()
+            or 0
+        )
+        percent = (spent / budget.amount) * 100 if budget.amount else 0
+        if percent >= settings.alert_budget_pct:
+            subj = "Pulse alert: Budget threshold reached"
+            label = budget.category or "All categories"
+            body = f"Budget '{label}' is at {percent:.1f}% (${spent:.2f} of ${budget.amount:.2f})."
+            send_email(current_user.email, subj, body)
+
+
 @main_bp.route("/")
 def index():
     if current_user.is_authenticated:
@@ -325,7 +353,9 @@ def add_transaction():
         db.session.add(tx)
         db.session.commit()
         _save_attachment(tx.id)
-        _maybe_send_alerts(tx, settings=UserSettings.query.filter_by(user_id=current_user.id).first())
+        settings = UserSettings.query.filter_by(user_id=current_user.id).first()
+        _maybe_send_alerts(tx, settings=settings)
+        _check_budget_alerts(tx, settings=settings)
         flash("Transaction added.", "success")
         return redirect(url_for("main.transactions"))
 
@@ -389,7 +419,9 @@ def edit_transaction(tx_id):
         tx.amount_base = convert_to_base(current_user.id, amount, currency)
         tx.description = description
         db.session.commit()
+        settings = UserSettings.query.filter_by(user_id=current_user.id).first()
         _save_attachment(tx.id)
+        _check_budget_alerts(tx, settings=settings)
         flash("Transaction updated.", "success")
         return redirect(url_for("main.transactions"))
 
