@@ -11,7 +11,7 @@
     </div>
 </div>
 
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-4 stats-scroll">
     <div class="col-md-4">
         <div class="stat-tile">
             <div>
@@ -315,17 +315,19 @@
     const monthlyIE = {{ monthly_ie|tojson }};
     const topCat = {{ top_categories_30|tojson }};
     const forecastData = {{ forecast|tojson }};
+    const catColorMap = {{ cat_colors|tojson }};
 
     const catCtx = document.getElementById('categoryChart');
     const categories = Object.keys(categoryData);
     const catValues = categories.map(k => Math.abs(categoryData[k]));
+    const catColors = categories.map(k => catColorMap[k] || '#4fb3ff');
     new Chart(catCtx, {
         type: 'doughnut',
         data: {
             labels: categories,
             datasets: [{
                 data: catValues,
-                backgroundColor: ['#4fb3ff','#38d996','#ff6b6b','#ffb347','#a78bfa','#50e3c2','#f7aef8','#9ed0ff'],
+                backgroundColor: catColors,
                 borderWidth: 0
             }]
         },
@@ -412,6 +414,7 @@
 
     const topCatCtx = document.getElementById('topCategoriesChart');
     const topCatEntries = Object.entries(topCat).sort((a,b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0,5);
+    const topColors = topCatEntries.map(e => catColorMap[e[0]] || '#ffb347');
     new Chart(topCatCtx, {
         type: 'bar',
         data: {
@@ -419,8 +422,8 @@
             datasets: [{
                 label: 'Spend',
                 data: topCatEntries.map(e => Math.abs(e[1])),
-                backgroundColor: 'rgba(255, 179, 71, 0.7)',
-                borderColor: '#ffb347',
+                backgroundColor: topColors,
+                borderColor: topColors,
                 borderWidth: 1,
                 borderRadius: 6,
             }]

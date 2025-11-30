@@ -40,6 +40,34 @@
     --btn-ghost-hover: rgba(245, 158, 11, 0.12);
 }
 
+:root[data-theme='night'] {
+    --bg: #0a0f1f;
+    --bg-card: rgba(255, 255, 255, 0.04);
+    --primary: #7c3aed;
+    --primary-strong: #5b21b6;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --success: #10b981;
+    --danger: #ef4444;
+    --btn-ghost-text: #e5e7eb;
+    --btn-ghost-border: rgba(229, 231, 235, 0.25);
+    --btn-ghost-hover: rgba(124, 58, 237, 0.18);
+}
+
+:root[data-theme='aurora'] {
+    --bg: #0b1d27;
+    --bg-card: rgba(255, 255, 255, 0.06);
+    --primary: #34d399;
+    --primary-strong: #10b981;
+    --text: #e0f2fe;
+    --muted: #93c5fd;
+    --success: #34d399;
+    --danger: #f87171;
+    --btn-ghost-text: #e0f2fe;
+    --btn-ghost-border: rgba(224, 242, 254, 0.28);
+    --btn-ghost-hover: rgba(52, 211, 153, 0.18);
+}
+
 * {
     font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
 }

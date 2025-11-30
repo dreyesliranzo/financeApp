@@ -180,6 +180,7 @@ def dashboard():
         .limit(5)
         .all()
     )
+    cat_colors = {c.name: c.color for c in Category.query.filter_by(user_id=current_user.id).all()}
 
     recent_tx = (
         Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.date.desc()).limit(5).all()
@@ -213,6 +214,7 @@ def dashboard():
         upcoming_recurring=upcoming_recurring,
         tx_count=tx_count,
         budget_count=budget_count,
+        cat_colors=cat_colors,
     )
 
 
@@ -534,6 +536,7 @@ def reports():
     monthly_ie = summarize_monthly_income_expense(current_user.id)
     balance_points = balance_over_time(current_user.id)
     forecast = forecast_balance(current_user.id, 30)
+    cat_colors = {c.name: c.color for c in Category.query.filter_by(user_id=current_user.id).all()}
     return render_template(
         "reports.html",
         category_totals=category_totals,
@@ -541,6 +544,7 @@ def reports():
         monthly_ie=monthly_ie,
         balance_points=balance_points,
         forecast=forecast,
+        cat_colors=cat_colors,
     )
 
 

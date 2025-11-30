@@ -61,17 +61,19 @@
     const balanceData = {{ balance_points|tojson }};
     const monthlyIE = {{ monthly_ie|tojson }};
     const forecastData = {{ forecast|tojson }};
+    const catColorMap = {{ cat_colors|tojson }};
 
     const catCtx = document.getElementById('categoryChart');
     const categories = Object.keys(categoryData);
     const catValues = categories.map(k => Math.abs(categoryData[k]));
+    const catColors = categories.map(k => catColorMap[k] || '#4fb3ff');
     new Chart(catCtx, {
         type: 'doughnut',
         data: {
             labels: categories,
             datasets: [{
                 data: catValues,
-                backgroundColor: ['#4fb3ff','#38d996','#ff6b6b','#ffb347','#a78bfa','#50e3c2','#f7aef8','#9ed0ff'],
+                backgroundColor: catColors,
                 borderWidth: 0
             }]
         },
