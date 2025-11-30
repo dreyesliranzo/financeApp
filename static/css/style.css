@@ -20,6 +20,17 @@
     --danger: #e11d48;
 }
 
+:root[data-theme='sand'] {
+    --bg: #fdf6e3;
+    --bg-card: rgba(255, 255, 255, 0.95);
+    --primary: #f59e0b;
+    --primary-strong: #d97706;
+    --text: #3f2f1c;
+    --muted: #6b5b43;
+    --success: #16a34a;
+    --danger: #dc2626;
+}
+
 * {
     font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
 }
@@ -247,6 +258,23 @@ label.form-label {
 
 .chart-card, .glass-card, .stat-tile {
     animation: fadeUp 0.4s ease;
+}
+
+.mobile-action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(10px);
+    padding: 10px 16px;
+    justify-content: space-around;
+    z-index: 900;
+}
+.mobile-action-bar a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
 }
 
 @media (max-width: 768px) {

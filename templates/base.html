@@ -61,7 +61,7 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }} shadow-sm auto-dismiss">{{ message }}</div>
+                <div class="toast-notice alert alert-{{ category }} shadow-sm auto-dismiss">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
@@ -74,6 +74,7 @@
     (function() {
         const btn = document.getElementById('themeToggle');
         if (!btn) return;
+        const themes = ['dark', 'light', 'sand'];
         const apply = (mode) => {
             document.documentElement.dataset.theme = mode;
             localStorage.setItem('theme', mode);
@@ -81,7 +82,9 @@
         const saved = localStorage.getItem('theme') || 'dark';
         apply(saved);
         btn.addEventListener('click', () => {
-            const next = (localStorage.getItem('theme') === 'light') ? 'dark' : 'light';
+            const current = localStorage.getItem('theme') || 'dark';
+            const idx = themes.indexOf(current);
+            const next = themes[(idx + 1) % themes.length];
             apply(next);
         });
     })();
@@ -101,8 +104,14 @@
 <footer class="text-center text-secondary small py-4">
     © {{ now().year if now else '' }} Pulse Finance · Diego Reyes. All rights reserved.
 </footer>
+<div id="toast-container"></div>
 {% if current_user.is_authenticated %}
 <button class="fab" onclick="window.location.href='{{ url_for('main.add_transaction') }}'">+</button>
+<div class="mobile-action-bar d-md-none d-flex">
+    <a href="{{ url_for('main.add_transaction') }}">Add</a>
+    <a href="{{ url_for('main.budgets') }}">Budgets</a>
+    <a href="{{ url_for('main.reports') }}">Reports</a>
+</div>
 {% endif %}
 </body>
 </html>
