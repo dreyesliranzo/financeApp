@@ -176,6 +176,7 @@ def dashboard():
     expenses = tx_query.filter(Transaction.type == "expense").with_entities(db.func.sum(amount_expr)).scalar() or 0
     income = tx_query.filter(Transaction.type == "income").with_entities(db.func.sum(amount_expr)).scalar() or 0
 
+    settings = UserSettings.query.filter_by(user_id=current_user.id).first()
     category_totals = summarize_category_totals(current_user.id, start, end)
     monthly = summarize_monthly_spend(current_user.id)
     monthly_ie = summarize_monthly_income_expense(current_user.id)
@@ -217,6 +218,49 @@ def dashboard():
     tx_count = Transaction.query.filter_by(user_id=current_user.id).count()
     budget_count = Budget.query.filter_by(user_id=current_user.id).count()
 
+    # Build alerts feed
+    feed_items = []
+    if settings and settings.alert_large:
+        alert_threshold = settings.alert_large
+        large_txs = (
+            Transaction.query.filter_by(user_id=current_user.id)
+            .filter(Transaction.date >= today - timedelta(days=30))
+            .filter(Transaction.amount >= alert_threshold)
+            .order_by(Transaction.date.desc())
+            .limit(5)
+            .all()
+        )
+        for tx in large_txs:
+            feed_items.append(
+                {
+                    "type": "large_tx",
+                    "title": "Large transaction",
+                    "detail": f"{tx.currency or ''}{tx.amount:.2f} • {tx.category}",
+                    "date": tx.date,
+                }
+            )
+    if settings and settings.alert_budget_pct:
+        for item in budgets:
+            if item["percent"] >= settings.alert_budget_pct:
+                feed_items.append(
+                    {
+                        "type": "budget",
+                        "title": "Budget nearing limit",
+                        "detail": f"{item['budget'].category or 'All'} at {item['percent']:.0f}%",
+                        "date": today,
+                    }
+                )
+    for r in upcoming_recurring[:5]:
+        feed_items.append(
+            {
+                "type": "recurring",
+                "title": "Upcoming recurring",
+                "detail": f"{r.next_run} • {r.name} ({r.type}) - {r.currency or ''}{r.amount:.2f}",
+                "date": r.next_run,
+            }
+        )
+    feed_items = sorted(feed_items, key=lambda x: x["date"], reverse=True)
+
     return render_template(
         "dashboard.html",
         expenses=expenses,
@@ -243,6 +287,7 @@ def dashboard():
         daily_burn=daily_burn,
         runway_days=runway_days,
         current_balance=current_balance,
+        feed_items=feed_items,
     )
 
 
