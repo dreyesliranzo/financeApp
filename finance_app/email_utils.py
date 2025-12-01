@@ -1,9 +1,12 @@
+import logging
 import os
 import smtplib
 from email.message import EmailMessage
 from typing import Optional
 
 import requests
+
+logger = logging.getLogger(__name__)
 
 
 def send_email(to_email: str, subject: str, body: str) -> Optional[str]:
@@ -28,10 +31,15 @@ def send_email(to_email: str, subject: str, body: str) -> Optional[str]:
                 timeout=15,
             )
             if resp.status_code in (200, 202):
+                logger.info("email.sent.sendgrid", extra={"to": to_email, "subject": subject, "backend": "sendgrid"})
                 return None
             # If API fails, fall back to SMTP
+            logger.warning(
+                "email.sendgrid.failed",
+                extra={"to": to_email, "subject": subject, "status": resp.status_code, "body": resp.text[:200]},
+            )
         except Exception as exc:  # pragma: no cover - external service
-            pass
+            logger.warning("email.sendgrid.exception", exc_info=exc, extra={"to": to_email, "subject": subject})
 
     smtp_host = os.getenv("SMTP_HOST")
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
@@ -41,7 +49,9 @@ def send_email(to_email: str, subject: str, body: str) -> Optional[str]:
     use_tls = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
 
     if not smtp_host or not smtp_user or not smtp_password or not from_email:
-        return "SMTP credentials are not fully configured."
+        err = "SMTP credentials are not fully configured."
+        logger.error("email.smtp.misconfigured", extra={"to": to_email, "subject": subject})
+        return err
 
     msg = EmailMessage()
     msg["From"] = from_email
@@ -61,6 +71,11 @@ def send_email(to_email: str, subject: str, body: str) -> Optional[str]:
                 server.starttls()
             server.login(smtp_user, smtp_password)
             server.send_message(msg)
+        logger.info(
+            "email.sent.smtp",
+            extra={"to": to_email, "subject": subject, "backend": "smtp", "host": smtp_host, "port": smtp_port},
+        )
         return None
     except Exception as exc:  # pragma: no cover - external service
+        logger.error("email.smtp.exception", exc_info=exc, extra={"to": to_email, "subject": subject})
         return str(exc)

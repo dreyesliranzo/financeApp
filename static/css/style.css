@@ -249,7 +249,10 @@ label.form-label {
 }
 
 .chart-card {
-    min-height: 320px;
+    min-height: 260px;
+}
+.chart-card canvas {
+    max-height: 240px;
 }
 
 .stat-tile {

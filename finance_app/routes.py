@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta
 import csv
 import io
 import json
+import os
 
 from flask import (
     Blueprint,
@@ -259,6 +260,8 @@ def transactions():
     end = _parse_date(request.args.get("end"))
     category = request.args.get("category") or None
     range_filter = request.args.get("range")
+    page = max(request.args.get("page", 1, type=int) or 1, 1)
+    per_page = min(max(request.args.get("per_page", 20, type=int) or 20, 1), 100)
 
     if range_filter in ["this_week", "last_week"]:
         today = date.today()
@@ -283,11 +286,16 @@ def transactions():
     else:
         query = query.order_by(Transaction.date.desc())
 
-    transactions_list = query.all()
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    transactions_list = pagination.items
     cat_colors = {c.name: c.color for c in Category.query.filter_by(user_id=current_user.id).all()}
+    pagination_params = request.args.to_dict()
+    pagination_params.pop("page", None)
+    pagination_params.pop("per_page", None)
     return render_template(
         "transactions.html",
         transactions=transactions_list,
+        pagination=pagination,
         categories=get_user_categories(current_user.id),
         selected_category=category,
         sort=sort,
@@ -295,6 +303,8 @@ def transactions():
         end=request.args.get("end"),
         range_filter=range_filter,
         cat_colors=cat_colors,
+        pagination_params=pagination_params,
+        per_page=per_page,
     )
 
 

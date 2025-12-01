@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -32,3 +33,6 @@ class Config:
         "pool_timeout": 30,
     }
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", str(BASE_DIR.parent / "static" / "uploads"))
+    session_minutes = int(os.getenv("SESSION_TIMEOUT_MINUTES", "30"))
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=session_minutes)
+    REMEMBER_COOKIE_DURATION = timedelta(minutes=session_minutes)

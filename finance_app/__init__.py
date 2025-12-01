@@ -1,7 +1,10 @@
+import logging
 import os
-from flask import Flask
+from datetime import datetime
+from time import time
+from flask import Flask, session, redirect, url_for, flash, g, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user, logout_user
 from flask_bcrypt import Bcrypt
 from dotenv import load_dotenv
 
@@ -23,6 +26,46 @@ def create_app(test_config=None):
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
     login_manager.login_message_category = "warning"
+    app.permanent_session_lifetime = app.config["PERMANENT_SESSION_LIFETIME"]
+
+    @app.before_request
+    def _track_start_time():
+        g.request_start = time()
+
+    @app.before_request
+    def enforce_session_timeout():
+        """Expire idle sessions based on PERMANENT_SESSION_LIFETIME."""
+        if not current_user.is_authenticated:
+            return
+        now_ts = datetime.utcnow().timestamp()
+        last_active = session.get("last_active")
+        lifetime = app.permanent_session_lifetime.total_seconds()
+        if last_active and (now_ts - last_active) > lifetime:
+            logout_user()
+            session.clear()
+            flash("Session timed out. Please log in again.", "warning")
+            return redirect(url_for("auth.login"))
+        session.permanent = True
+        session["last_active"] = now_ts
+
+    @app.after_request
+    def _log_request(response):
+        # Lightweight request log for observability
+        try:
+            duration_ms = (time() - g.get("request_start", time())) * 1000
+            app.logger.info(
+                "request",
+                extra={
+                    "method": request.method,
+                    "path": request.path,
+                    "status": response.status_code,
+                    "duration_ms": round(duration_ms, 2),
+                    "user": current_user.get_id() if current_user.is_authenticated else None,
+                },
+            )
+        except Exception:
+            pass
+        return response
 
     with app.app_context():
         # Local import to avoid circular dependencies
