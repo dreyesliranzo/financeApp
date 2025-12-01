@@ -168,8 +168,14 @@ def dashboard():
         current_user.id, date.today() - timedelta(days=30), date.today()
     )
     forecast = forecast_balance(current_user.id, 30)
-    # weekly deltas
+    # burn rate and runway based on last 30 days
     today = date.today()
+    start_30 = today - timedelta(days=30)
+    net_30 = total_balance(current_user.id, start_30, today)
+    daily_burn = abs(net_30 / 30.0) if net_30 < 0 else 0.0
+    current_balance = balance_points[-1][1] if balance_points else remaining
+    runway_days = int(current_balance / daily_burn) if daily_burn > 0 and current_balance > 0 else None
+    # weekly deltas
     this_week_start = today - timedelta(days=today.weekday())
     last_week_start = this_week_start - timedelta(days=7)
     last_week_end = this_week_start - timedelta(days=1)
@@ -216,6 +222,9 @@ def dashboard():
         tx_count=tx_count,
         budget_count=budget_count,
         cat_colors=cat_colors,
+        daily_burn=daily_burn,
+        runway_days=runway_days,
+        current_balance=current_balance,
     )
 
 

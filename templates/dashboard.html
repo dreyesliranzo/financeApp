@@ -55,6 +55,56 @@
     </div>
 </div>
 
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-tile">
+            <div>
+                <div class="stat-label">Daily Burn (30d)</div>
+                <div class="stat-value {% if daily_burn > 0 %}text-danger{% else %}text-success{% endif %}">
+                    {% if daily_burn > 0 %}
+                        -${{ '%.2f'|format(daily_burn) }}/day
+                    {% else %}
+                        Stable / Positive
+                    {% endif %}
+                </div>
+            </div>
+            <span class="avatar-dot" style="background:{% if daily_burn > 0 %}#ff6b6b{% else %}#38d996{% endif %}"></span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-tile">
+            <div>
+                <div class="stat-label">Runway</div>
+                <div class="stat-value {% if runway_days and runway_days < 30 %}text-danger{% else %}text-success{% endif %}">
+                    {% if runway_days %}
+                        {{ runway_days }} days
+                    {% else %}
+                        No burn detected
+                    {% endif %}
+                </div>
+            </div>
+            <span class="avatar-dot" style="background:{% if runway_days and runway_days < 30 %}#ff6b6b{% else %}#38d996{% endif %}"></span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-tile">
+            <div>
+                <div class="stat-label">Upcoming Recurring</div>
+                {% if upcoming_recurring %}
+                    <div class="text-secondary small">
+                        {% for r in upcoming_recurring %}
+                            <div>{{ r.next_run }} • {{ r.name }} ({{ r.type }}) - {{ r.currency or '' }}{{ '%.2f'|format(r.amount) }}</div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <small class="text-secondary">No upcoming items.</small>
+                {% endif %}
+            </div>
+            <span class="avatar-dot" style="background:#4fb3ff"></span>
+        </div>
+    </div>
+</div>
+
 {% if tx_count == 0 or budget_count == 0 or not goal %}
 <div class="card glass-card mb-3 onboarding-card">
     <div class="card-body">
