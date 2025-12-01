@@ -11,16 +11,16 @@
 <div class="card glass-card">
     <div class="card-body">
         {% if goal %}
-        {% set percent = goal_percent if goal_percent < 100 else 100 %}
+        {% set percent_display = percent if percent < 100 else 100 %}
         <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
                 <h5 class="card-title mb-0">{{ goal.name }}</h5>
                 <small class="text-secondary">Current: ${{ '%.2f'|format(goal.current_amount) }} / Target: ${{ '%.2f'|format(goal.target_amount or 0) }}</small>
             </div>
-            <div class="fw-bold">{{ '%.0f'|format(percent) }}%</div>
+            <div class="fw-bold">{{ '%.0f'|format(percent_display) }}%</div>
         </div>
         <div class="progress mb-3">
-            <div class="progress-bar safe" style="width: {{ percent }}%"></div>
+            <div class="progress-bar safe" style="width: {{ percent_display }}%"></div>
         </div>
         {% else %}
         <p class="text-secondary">No savings goal yet.</p>
