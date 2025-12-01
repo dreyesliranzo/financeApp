@@ -9,8 +9,8 @@
 </div>
 
 <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-6">
-  {% if goal %}
-  {% set percent = percent if percent < 100 else 100 %}
+{% if goal %}
+{% set percent = goal_percent if goal_percent < 100 else 100 %}
   <div class="flex items-center justify-between mb-3">
     <div>
       <h5 class="text-lg font-semibold text-white">{{ goal.name }}</h5>

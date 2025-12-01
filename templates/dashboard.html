@@ -1,195 +1,207 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+<div class="flex flex-wrap items-center justify-between gap-3 mb-2">
   <div>
-    <h2 class="text-3xl font-bold tracking-tight text-white">Dashboard</h2>
+    <h2 class="text-4xl font-bold text-white">Dashboard</h2>
     <p class="text-sm text-text-muted">Financial overview, spending, and upcoming items.</p>
   </div>
   <div class="flex items-center gap-2">
-    <a href="{{ url_for('main.add_transaction') }}" class="px-4 py-2 rounded-xl bg-primary text-white font-semibold shadow-button hover:brightness-110">+ Add Transaction</a>
-    <a href="{{ url_for('main.budgets') }}" class="px-4 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5">Manage Budgets</a>
+    <a href="{{ url_for('main.add_transaction') }}" class="px-4 py-2 rounded-xl bg-primary text-white font-semibold shadow-button hover:brightness-110 active:scale-[0.97] transition">+ Add Transaction</a>
+    <a href="{{ url_for('main.budgets') }}" class="px-4 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5 active:scale-[0.97] transition">Manage Budgets</a>
   </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-  <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-4 shadow-card">
-    <div class="text-xs text-text-muted mb-1 flex items-center gap-2">Income</div>
-    <div class="text-2xl font-bold text-success">${{ '%.2f'|format(income) }}</div>
+<div class="space-y-4 mt-4">
+  <div class="flex items-center justify-between">
+    <h3 class="text-lg font-semibold text-white">Overview</h3>
+    <span class="text-xs text-text-muted">All values in USD</span>
   </div>
-  <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-4 shadow-card">
-    <div class="text-xs text-text-muted mb-1 flex items-center gap-2">Expenses</div>
-    <div class="text-2xl font-bold text-danger">${{ '%.2f'|format(expenses) }}</div>
-  </div>
-  <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-4 shadow-card">
-    <div class="text-xs text-text-muted mb-1 flex items-center gap-2">Net</div>
-    {% set net_value = income - expenses %}
-    <div class="text-2xl font-bold {% if net_value < 0 %}text-danger{% else %}text-success{% endif %}">{{ '%.2f'|format(net_value) }}</div>
-  </div>
-  <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-4 shadow-card">
-    <div class="text-xs text-text-muted mb-1 flex items-center gap-2">Burn (30d)</div>
-    <div class="text-2xl font-bold {% if daily_burn > 0 %}text-danger{% else %}text-success{% endif %}">
-      {% if daily_burn > 0 %}-{{ '%.2f'|format(daily_burn) }}/d{% else %}Stable{% endif %}
-    </div>
-  </div>
-  <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-4 shadow-card">
-    <div class="text-xs text-text-muted mb-1 flex items-center gap-2">Runway</div>
-    <div class="text-2xl font-bold {% if runway_days and runway_days < 30 %}text-danger{% else %}text-success{% endif %}">
-      {% if runway_days %}{{ runway_days }} days{% else %}No burn{% endif %}
-    </div>
-  </div>
-  <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-4 shadow-card">
-    <div class="text-xs text-text-muted mb-1 flex items-center gap-2">Remaining Balance</div>
-    <div class="text-2xl font-bold {% if remaining < 0 %}text-danger{% else %}text-success{% endif %}">{{ '%.2f'|format(remaining) }}</div>
-  </div>
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-5 shadow-card">
-    <div class="flex items-center justify-between mb-3">
-      <div>
-        <h5 class="text-lg font-semibold text-white">Spending by Category</h5>
-        <p class="text-xs text-text-muted">Expenses grouped by category</p>
-      </div>
-    </div>
-    <div class="h-72"><canvas id="categoryChart"></canvas></div>
-  </div>
-  <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-5 shadow-card">
-    <div class="flex items-center justify-between mb-3">
-      <div>
-        <h5 class="text-lg font-semibold text-white">Monthly Net</h5>
-        <p class="text-xs text-text-muted">Income minus expenses per month</p>
-      </div>
-    </div>
-    <div class="h-72"><canvas id="monthlyChart"></canvas></div>
-  </div>
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-  <div class="lg:col-span-2 rounded-2xl border border-white/5 bg-slate-900/70 p-5 shadow-card">
-    <div class="flex items-center justify-between mb-3">
-      <div>
-        <h5 class="text-lg font-semibold text-white">Balance Over Time</h5>
-        <p class="text-xs text-text-muted">Cumulative balance trajectory</p>
-      </div>
-    </div>
-    <div class="h-72"><canvas id="balanceChart"></canvas></div>
-  </div>
-  <div class="space-y-4">
-    <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-4 shadow-card">
+  {% set net_value = income - expenses %}
+  {% set cards = [
+    ('Income', income, 'text-success', '30d'),
+    ('Expenses', expenses, 'text-danger', '30d'),
+    ('Net', net_value, 'text-success' if net_value >=0 else 'text-danger', '30d'),
+    ('Burn (30d)', daily_burn, 'text-danger' if daily_burn>0 else 'text-success', 'Avg'),
+    ('Runway', runway_days if runway_days else 0, 'text-success' if runway_days and runway_days>=30 else 'text-danger' if runway_days else 'text-success', 'Forecast'),
+    ('Remaining Balance', remaining, 'text-success' if remaining>=0 else 'text-danger', 'Period')
+  ] %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
+    {% for label, value, cls, chip in cards %}
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-5 shadow-card hover:-translate-y-0.5 transition">
       <div class="flex items-center justify-between mb-2">
+        <span class="text-xs text-text-muted">{{ label }}</span>
+        <span class="px-2 py-1 rounded-full text-[11px] bg-white/5 text-text-muted">{{ chip }}</span>
+      </div>
+      <div class="text-3xl font-bold {{ cls }}">
+        {% if label == 'Runway' %}
+          {% if runway_days %}{{ runway_days }}d{% else %}—{% endif %}
+        {% elif label == 'Burn (30d)' %}
+          {% if daily_burn > 0 %}-{{ '%.2f'|format(daily_burn) }}/d{% else %}Stable{% endif %}
+        {% else %}
+          ${{ '%.2f'|format(value) }}
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="space-y-3 mt-6">
+  <h3 class="text-lg font-semibold text-white">Spending</h3>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-6 shadow-card hover:-translate-y-0.5 transition">
+      <div class="flex items-center justify-between mb-4">
         <div>
-          <h5 class="text-base font-semibold text-white">Alerts</h5>
-          <p class="text-xs text-text-muted">Large spends, budgets, recurring</p>
+          <h5 class="text-lg font-semibold text-white">Spending by Category</h5>
+          <p class="text-xs text-text-muted">Expenses grouped by category</p>
         </div>
       </div>
-      {% if feed_items %}
-      <div class="divide-y divide-white/5">
-        {% for item in feed_items %}
-        <div class="py-2 flex items-start justify-between">
-          <div class="space-y-1">
-            <div class="flex items-center gap-2 text-sm font-semibold text-white">
-              {% if item.type == 'large_tx' %}<span class="px-2 py-1 rounded-full bg-danger/20 text-danger text-xs">Large</span>{% endif %}
-              {% if item.type == 'budget' %}<span class="px-2 py-1 rounded-full bg-warning/20 text-warning text-xs">Budget</span>{% endif %}
-              {% if item.type == 'recurring' %}<span class="px-2 py-1 rounded-full bg-info/20 text-info text-xs">Recurring</span>{% endif %}
-              {{ item.title }}
-            </div>
-            <p class="text-xs text-text-muted">{{ item.detail }}</p>
-          </div>
-          <span class="text-xs text-text-muted">{{ item.date }}</span>
-        </div>
-        {% endfor %}
-      </div>
-      {% else %}
-        <p class="text-sm text-text-muted mb-0">No alerts right now.</p>
-      {% endif %}
+      <div class="h-72"><canvas id="categoryChart"></canvas></div>
     </div>
-    <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-4 shadow-card">
-      <div class="flex items-center justify-between mb-2">
-        <h5 class="text-base font-semibold text-white">Recent Transactions</h5>
-        <a class="text-xs text-primary" href="{{ url_for('main.transactions') }}">View all</a>
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-6 shadow-card hover:-translate-y-0.5 transition">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h5 class="text-lg font-semibold text-white">Monthly Net</h5>
+          <p class="text-xs text-text-muted">Income minus expenses per month</p>
+        </div>
       </div>
-      {% if recent_tx %}
-      <div class="divide-y divide-white/5">
-        {% for tx in recent_tx %}
-        <div class="py-2 flex items-center justify-between">
+      <div class="h-72"><canvas id="monthlyChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="space-y-3 mt-6">
+  <h3 class="text-lg font-semibold text-white">Upcoming & Activity</h3>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 rounded-2xl border border-white/5 bg-slate-900/70 p-6 shadow-card hover:-translate-y-0.5 transition">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h5 class="text-lg font-semibold text-white">Balance Over Time</h5>
+          <p class="text-xs text-text-muted">Cumulative balance trajectory</p>
+        </div>
+      </div>
+      <div class="h-72"><canvas id="balanceChart"></canvas></div>
+    </div>
+    <div class="space-y-4">
+      <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-5 shadow-card hover:-translate-y-0.5 transition">
+        <div class="flex items-center justify-between mb-3">
           <div>
-            <div class="text-sm font-semibold text-white">{{ tx.category }}</div>
-            <div class="text-xs text-text-muted">{{ tx.date.strftime('%Y-%m-%d') }} · {{ tx.description or 'No description' }}</div>
-          </div>
-          <div class="text-sm font-bold {% if tx.type == 'expense' %}text-danger{% else %}text-success{% endif %}">
-            {% if tx.type == 'expense' %}-{% else %}+{% endif %}${{ '%.2f'|format(tx.amount) }}
+            <h5 class="text-base font-semibold text-white">Alerts</h5>
+            <p class="text-xs text-text-muted">Large spends, budgets, recurring</p>
           </div>
         </div>
-        {% endfor %}
+        {% if feed_items %}
+        <div class="divide-y divide-white/5">
+          {% for item in feed_items %}
+          <div class="py-2 flex items-start justify-between">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 text-sm font-semibold text-white">
+                {% if item.type == 'large_tx' %}<span class="px-2 py-1 rounded-full bg-danger/15 text-danger text-[11px]">Overspend</span>{% endif %}
+                {% if item.type == 'budget' %}<span class="px-2 py-1 rounded-full bg-warning/15 text-warning text-[11px]">Budget</span>{% endif %}
+                {% if item.type == 'recurring' %}<span class="px-2 py-1 rounded-full bg-info/15 text-info text-[11px]">Recurring</span>{% endif %}
+                {{ item.title }}
+              </div>
+              <p class="text-xs text-text-muted">{{ item.detail }}</p>
+            </div>
+            <span class="text-xs text-text-muted">{{ item.date }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+          <p class="text-sm text-text-muted mb-0">No alerts right now.</p>
+        {% endif %}
       </div>
-      {% else %}
-        <p class="text-sm text-text-muted mb-0">No recent transactions.</p>
-      {% endif %}
+      <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-5 shadow-card hover:-translate-y-0.5 transition">
+        <div class="flex items-center justify-between mb-3">
+          <h5 class="text-base font-semibold text-white">Recent Transactions</h5>
+          <a class="text-xs text-primary" href="{{ url_for('main.transactions') }}">View all</a>
+        </div>
+        {% if recent_tx %}
+        <div class="divide-y divide-white/5">
+          {% for tx in recent_tx %}
+          <div class="py-2 flex items-center justify-between hover:bg-white/5 rounded-lg px-2 transition">
+            <div>
+              <div class="text-sm font-semibold text-white">{{ tx.category }}</div>
+              <div class="text-xs text-text-muted">{{ tx.date.strftime('%Y-%m-%d') }} · {{ tx.description or 'No description' }}</div>
+            </div>
+            <div class="text-sm font-bold {% if tx.type == 'expense' %}text-danger{% else %}text-success{% endif %}">
+              {% if tx.type == 'expense' %}-{% else %}+{% endif %}${{ '%.2f'|format(tx.amount) }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+          <p class="text-sm text-text-muted mb-0">No recent transactions.</p>
+        {% endif %}
+      </div>
+      <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-5 shadow-card hover:-translate-y-0.5 transition">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h5 class="text-base font-semibold text-white">Savings Goal</h5>
+            <p class="text-xs text-text-muted">Track your progress</p>
+          </div>
+            <a class="text-xs text-primary" href="{{ url_for('main.savings') }}">Manage</a>
+        </div>
+        {% if goal %}
+          {% set percent = goal_percent if goal_percent < 100 else 100 %}
+          <div class="flex items-center justify-between">
+            <div class="font-semibold text-white">{{ goal.name }}</div>
+            <div class="text-lg font-bold">{{ '%.0f'|format(percent) }}%</div>
+          </div>
+          <div class="w-full h-3 rounded-full bg-white/10 mt-3 overflow-hidden">
+            <div class="h-3 rounded-full bg-gradient-to-r from-emerald-400 to-sky-400" style="width: {{ percent }}%"></div>
+          </div>
+          <p class="text-xs text-text-muted mt-2">${{ '%.2f'|format(goal.current_amount) }} / ${{ '%.2f'|format(goal.target_amount or 0) }}</p>
+        {% else %}
+          <p class="text-sm text-text-muted mb-0">No savings goal set.</p>
+        {% endif %}
+      </div>
     </div>
-    <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-4 shadow-card">
-      <div class="flex items-center justify-between mb-2">
+  </div>
+</div>
+
+<div class="space-y-3 mt-6">
+  <h3 class="text-lg font-semibold text-white">Insights</h3>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-6 shadow-card hover:-translate-y-0.5 transition">
+      <div class="flex items-center justify-between mb-4">
         <div>
-          <h5 class="text-base font-semibold text-white">Savings Goal</h5>
-          <p class="text-xs text-text-muted">Track your progress</p>
+          <h5 class="text-lg font-semibold text-white">Income vs Expenses</h5>
+          <p class="text-xs text-text-muted">Stacked by month</p>
         </div>
-        <a class="text-xs text-primary" href="{{ url_for('main.savings') }}">Manage</a>
       </div>
-      {% if goal %}
-        {% set percent = goal_percent if goal_percent < 100 else 100 %}
-        <div class="flex items-center justify-between">
-          <div class="font-semibold text-white">{{ goal.name }}</div>
-          <div class="text-sm font-bold">{{ '%.0f'|format(percent) }}%</div>
+      <div class="h-72"><canvas id="incomeExpenseChart"></canvas></div>
+    </div>
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-6 shadow-card hover:-translate-y-0.5 transition">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h5 class="text-lg font-semibold text-white">Top Categories (30d)</h5>
+          <p class="text-xs text-text-muted">Greatest spend past 30 days</p>
         </div>
-        <div class="w-full h-2 rounded-full bg-white/10 mt-2">
-          <div class="h-2 rounded-full bg-gradient-to-r from-emerald-400 to-sky-400" style="width: {{ percent }}%"></div>
-        </div>
-        <p class="text-xs text-text-muted mt-2">${{ '%.2f'|format(goal.current_amount) }} / ${{ '%.2f'|format(goal.target_amount or 0) }}</p>
-      {% else %}
-        <p class="text-sm text-text-muted mb-0">No savings goal set.</p>
-      {% endif %}
+      </div>
+      <div class="h-72"><canvas id="topCategoriesChart"></canvas></div>
     </div>
   </div>
-</div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-  <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-5 shadow-card">
-    <div class="flex items-center justify-between mb-3">
-      <div>
-        <h5 class="text-lg font-semibold text-white">Income vs Expenses</h5>
-        <p class="text-xs text-text-muted">Stacked by month</p>
+  <div class="grid grid-cols-1 gap-6">
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-6 shadow-card hover:-translate-y-0.5 transition">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h5 class="text-lg font-semibold text-white">Forecast</h5>
+          <p class="text-xs text-text-muted">Projected balance next 30 days</p>
+        </div>
       </div>
+      <div class="h-80"><canvas id="forecastChart"></canvas></div>
     </div>
-    <div class="h-72"><canvas id="incomeExpenseChart"></canvas></div>
-  </div>
-  <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-5 shadow-card">
-    <div class="flex items-center justify-between mb-3">
-      <div>
-        <h5 class="text-lg font-semibold text-white">Top Categories (30d)</h5>
-        <p class="text-xs text-text-muted">Greatest spend past 30 days</p>
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-6 shadow-card hover:-translate-y-0.5 transition">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h5 class="text-lg font-semibold text-white">Pro Trend</h5>
+          <p class="text-xs text-text-muted">Trading-style balance view</p>
+        </div>
       </div>
+      <div class="h-72"><canvas id="proTrendChart"></canvas></div>
     </div>
-    <div class="h-72"><canvas id="topCategoriesChart"></canvas></div>
-  </div>
-</div>
-
-<div class="grid grid-cols-1 gap-6 mt-6">
-  <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-5 shadow-card">
-    <div class="flex items-center justify-between mb-3">
-      <div>
-        <h5 class="text-lg font-semibold text-white">Forecast</h5>
-        <p class="text-xs text-text-muted">Projected balance next 30 days</p>
-      </div>
-    </div>
-    <div class="h-80"><canvas id="forecastChart"></canvas></div>
-  </div>
-  <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-5 shadow-card">
-    <div class="flex items-center justify-between mb-3">
-      <div>
-        <h5 class="text-lg font-semibold text-white">Pro Trend</h5>
-        <p class="text-xs text-text-muted">Trading-style balance view</p>
-      </div>
-    </div>
-    <div class="h-72"><canvas id="proTrendChart"></canvas></div>
   </div>
 </div>
 {% endblock %}
@@ -225,7 +237,7 @@
   const balanceCtx = document.getElementById('balanceChart');
   new Chart(balanceCtx, {
     type: 'line',
-    data: { labels: balanceData.map(p => p[0]), datasets: [{ label: 'Balance', data: balanceData.map(p => p[1]), fill: true, backgroundColor: 'rgba(92,141,255,0.15)', borderColor: '#5c8dff', tension: 0.3, pointRadius: 0 }] },
+    data: { labels: balanceData.map(p => p[0]), datasets: [{ label: 'Balance', data: balanceData.map(p => p[1]), fill: true, backgroundColor: 'rgba(92,141,255,0.15)', borderColor: '#5c8dff', tension: 0.3, pointRadius: 0, borderWidth: 2 }] },
     options: { plugins: { legend: { display: false } } }
   });
 
@@ -255,7 +267,7 @@
   const forecastCtx = document.getElementById('forecastChart');
   new Chart(forecastCtx, {
     type: 'line',
-    data: { labels: forecastData.map(p => p[0]), datasets: [{ label: 'Projected Balance', data: forecastData.map(p => p[1]), fill: false, borderColor: '#a78bfa', backgroundColor: 'rgba(167, 139, 250, 0.2)', tension: 0.3, pointRadius: 0 }] },
+    data: { labels: forecastData.map(p => p[0]), datasets: [{ label: 'Projected Balance', data: forecastData.map(p => p[1]), fill: false, borderColor: '#a78bfa', backgroundColor: 'rgba(167, 139, 250, 0.2)', tension: 0.3, pointRadius: 0, borderWidth: 2 }] },
     options: { plugins: { legend: { display: false } } }
   });
 
