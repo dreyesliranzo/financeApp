@@ -3,7 +3,7 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
     <div>
         <h2 class="fw-bold mb-0">Budgets</h2>
-        <p class="text-secondary">Set limits and track your progress.</p>
+        <p class="text-secondary mb-0">Set limits and track your progress.</p>
     </div>
     <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-light">Back to Dashboard</a>
 </div>
@@ -15,26 +15,26 @@
                 <h5 class="card-title mb-3">New Budget</h5>
                 <form method="POST">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Period Start</label>
+                        <div class="col-md-6 input-floating">
                             <input type="date" name="period_start" class="form-control" required>
+                            <label class="form-label">Period Start</label>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Period End</label>
+                        <div class="col-md-6 input-floating">
                             <input type="date" name="period_end" class="form-control" required>
+                            <label class="form-label">Period End</label>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label">Category (optional)</label>
+                        <div class="col-12 input-floating">
                             <select name="category" class="form-select">
                                 <option value="">All categories</option>
                                 {% for cat in categories %}
                                     <option value="{{ cat }}">{{ cat }}</option>
                                 {% endfor %}
                             </select>
+                            <label class="form-label">Category (optional)</label>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label">Amount</label>
+                        <div class="col-12 input-floating">
                             <input type="number" step="0.01" min="0" name="amount" class="form-control" required>
+                            <label class="form-label">Amount</label>
                         </div>
                     </div>
                     <button class="btn btn-primary w-100 mt-3">Save Budget</button>
@@ -43,9 +43,9 @@
         </div>
     </div>
     <div class="col-lg-7">
-        <div class="card glass-card">
+        <div class="card glass-card mb-3">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <h5 class="card-title mb-0">Your Budgets</h5>
                     <small class="text-secondary">Current period progress below.</small>
                 </div>
@@ -76,7 +76,7 @@
                 {% endif %}
             </div>
         </div>
-        <div class="card glass-card mt-3">
+        <div class="card glass-card">
             <div class="card-body">
                 <h6 class="card-title mb-3">Current Progress</h6>
                 {% if progress %}
@@ -88,12 +88,14 @@
                                 <small class="text-secondary">{{ item.budget.period_start }} → {{ item.budget.period_end }}</small>
                             </div>
                             <div class="text-end">
-                                <div class="fw-bold {% if item.percent > 100 %}text-danger{% else %}text-success{% endif %}">{{ '%.0f'|format(item.percent) }}%</div>
+                                {% set bar_class = 'safe' %}
+                                {% if item.percent > 100 %}{% set bar_class = 'over' %}{% elif item.percent > 85 %}{% set bar_class = 'warn' %}{% endif %}
+                                <div class="fw-bold {% if item.percent > 100 %}text-danger{% elif item.percent > 85 %}text-warning{% else %}text-success{% endif %}">{{ '%.0f'|format(item.percent) }}%</div>
                                 <small class="text-secondary">${{ '%.2f'|format(item.spent) }} / ${{ '%.2f'|format(item.budget.amount) }}</small>
                             </div>
                         </div>
                         <div class="progress mt-2">
-                            <div class="progress-bar {% if item.percent > 100 %}over{% else %}safe{% endif %}" style="width: {{ item.percent if item.percent < 100 else 100 }}%"></div>
+                            <div class="progress-bar {{ bar_class }}" style="width: {{ item.percent if item.percent < 100 else 100 }}%"></div>
                         </div>
                     </div>
                     {% endfor %}

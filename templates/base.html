@@ -6,17 +6,16 @@
     <title>{{ title or "Pulse Finance" }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block head %}{% endblock %}
 </head>
 <body class="bg-surface">
 <div class="grain"></div>
-<div class="corner-shape shape-1"></div>
-<div class="corner-shape shape-2"></div>
-<nav class="navbar navbar-expand-lg navbar-dark bg-glass border-bottom border-light-subtle">
-    <div class="container-fluid">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-glass">
+    <div class="container-fluid app-shell">
         <a class="navbar-brand fw-bold" href="{{ url_for('main.dashboard') }}">Pulse</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -24,27 +23,13 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             {% if current_user.is_authenticated %}
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'main.add_transaction' %}active{% endif %}" href="{{ url_for('main.add_transaction') }}">Add Transaction</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'main.transactions' %}active{% endif %}" href="{{ url_for('main.transactions') }}">Transactions</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('main.budgets') %}active{% endif %}" href="{{ url_for('main.budgets') }}">Budgets</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'main.recurring' %}active{% endif %}" href="{{ url_for('main.recurring') }}">Recurring</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'main.reports' %}active{% endif %}" href="{{ url_for('main.reports') }}">Reports</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'main.savings' %}active{% endif %}" href="{{ url_for('main.savings') }}">Savings</a>
-                </li>
+                <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.add_transaction' %}active{% endif %}" href="{{ url_for('main.add_transaction') }}">Add Transaction</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.transactions' %}active{% endif %}" href="{{ url_for('main.transactions') }}">Transactions</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('main.budgets') %}active{% endif %}" href="{{ url_for('main.budgets') }}">Budgets</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.recurring' %}active{% endif %}" href="{{ url_for('main.recurring') }}">Recurring</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.reports' %}active{% endif %}" href="{{ url_for('main.reports') }}">Reports</a></li>
+                <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.savings' %}active{% endif %}" href="{{ url_for('main.savings') }}">Savings</a></li>
             </ul>
             <div class="d-flex align-items-center gap-3">
                 <span class="text-light small">Hi, {{ current_user.username }}</span>
@@ -57,7 +42,7 @@
     </div>
 </nav>
 
-<main class="container my-4">
+<main class="app-shell my-4">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -74,7 +59,7 @@
     (function() {
         const btn = document.getElementById('themeToggle');
         if (!btn) return;
-        const themes = ['dark', 'light', 'sand', 'night', 'aurora'];
+        const themes = ['dark', 'light'];
         const apply = (mode) => {
             document.documentElement.dataset.theme = mode;
             localStorage.setItem('theme', mode);
@@ -83,8 +68,7 @@
         apply(saved);
         btn.addEventListener('click', () => {
             const current = localStorage.getItem('theme') || 'dark';
-            const idx = themes.indexOf(current);
-            const next = themes[(idx + 1) % themes.length];
+            const next = current === 'dark' ? 'light' : 'dark';
             apply(next);
         });
     })();
@@ -102,7 +86,7 @@
 {% block scripts %}{% endblock %}
 
 <footer class="text-center text-secondary small py-4">
-    © {{ now().year if now else '' }} Pulse Finance · Diego Reyes. All rights reserved.
+    &copy; {{ now().year if now else '' }} Pulse Finance · Diego Reyes. All rights reserved.
 </footer>
 <div id="toast-container"></div>
 {% if current_user.is_authenticated %}

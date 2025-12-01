@@ -1,157 +1,90 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <div>
-        <h2 class="fw-bold mb-0">Dashboard</h2>
-        <p class="text-secondary">Overview of your cashflow and budgets.</p>
+        <h2 class="fw-bold mb-1">Dashboard</h2>
+        <p class="text-secondary mb-0">Financial overview, spending, and upcoming items.</p>
     </div>
-    <div>
-        <a href="{{ url_for('main.add_transaction') }}" class="btn btn-primary me-2">+ Add Transaction</a>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('main.add_transaction') }}" class="btn btn-primary">+ Add Transaction</a>
         <a href="{{ url_for('main.budgets') }}" class="btn btn-outline-light">Manage Budgets</a>
     </div>
 </div>
 
-<div class="row g-3 mb-4 stats-scroll">
-    <div class="col-md-4">
-        <div class="stat-tile">
-            <div>
-                <div class="stat-label">Income</div>
-                <div class="stat-value text-success">${{ '%.2f'|format(income) }}</div>
-            </div>
-            <span class="avatar-dot" style="background:#38d996"></span>
+<div class="metric-grid mb-3">
+    <div class="metric-card">
+        <h6>Income</h6>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="value text-success">${{ '%.2f'|format(income) }}</div>
+            <span class="pill">30d</span>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="stat-tile">
-            <div>
-                <div class="stat-label">Expenses</div>
-                <div class="stat-value text-danger">${{ '%.2f'|format(expenses) }}</div>
-            </div>
-            <span class="avatar-dot" style="background:#ff6b6b"></span>
+    <div class="metric-card">
+        <h6>Expenses</h6>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="value text-danger">${{ '%.2f'|format(expenses) }}</div>
+            <span class="pill">30d</span>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="stat-tile">
-            <div>
-                <div class="stat-label">Net</div>
-                {% set net_value = income - expenses %}
-                <div class="stat-value {% if net_value < 0 %}text-danger{% else %}text-success{% endif %}">
-                    {{ '%.2f'|format(net_value) }}
-                </div>
-            </div>
-            <span class="avatar-dot" style="background:#4fb3ff"></span>
+    <div class="metric-card">
+        <h6>Net</h6>
+        {% set net_value = income - expenses %}
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="value {% if net_value < 0 %}text-danger{% else %}text-success{% endif %}">{{ '%.2f'|format(net_value) }}</div>
+            <span class="pill">YTD</span>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="stat-tile">
-            <div>
-                <div class="stat-label">Remaining Balance</div>
-                <div class="stat-value {% if remaining < 0 %}text-danger{% else %}text-success{% endif %}">
-                    {{ '%.2f'|format(remaining) }}
-                </div>
+    <div class="metric-card">
+        <h6>Burn (30d)</h6>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="value {% if daily_burn > 0 %}text-danger{% else %}text-success{% endif %}">
+                {% if daily_burn > 0 %}-{{ '%.2f'|format(daily_burn) }}/d{% else %}Stable{% endif %}
             </div>
-            <span class="avatar-dot" style="background:{% if remaining < 0 %}#ff6b6b{% else %}#38d996{% endif %}"></span>
+            <span class="pill">Avg</span>
         </div>
     </div>
-</div>
-
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="stat-tile">
-            <div>
-                <div class="stat-label">Daily Burn (30d)</div>
-                <div class="stat-value {% if daily_burn > 0 %}text-danger{% else %}text-success{% endif %}">
-                    {% if daily_burn > 0 %}
-                        -${{ '%.2f'|format(daily_burn) }}/day
-                    {% else %}
-                        Stable / Positive
-                    {% endif %}
-                </div>
+    <div class="metric-card">
+        <h6>Runway</h6>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="value {% if runway_days and runway_days < 30 %}text-danger{% else %}text-success{% endif %}">
+                {% if runway_days %}{{ runway_days }} days{% else %}No burn{% endif %}
             </div>
-            <span class="avatar-dot" style="background:{% if daily_burn > 0 %}#ff6b6b{% else %}#38d996{% endif %}"></span>
+            <span class="pill">Forecast</span>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="stat-tile">
-            <div>
-                <div class="stat-label">Runway</div>
-                <div class="stat-value {% if runway_days and runway_days < 30 %}text-danger{% else %}text-success{% endif %}">
-                    {% if runway_days %}
-                        {{ runway_days }} days
-                    {% else %}
-                        No burn detected
-                    {% endif %}
-                </div>
-            </div>
-            <span class="avatar-dot" style="background:{% if runway_days and runway_days < 30 %}#ff6b6b{% else %}#38d996{% endif %}"></span>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="stat-tile">
-            <div>
-                <div class="stat-label">Upcoming Recurring</div>
-                {% if upcoming_recurring %}
-                    <div class="text-secondary small">
-                        {% for r in upcoming_recurring %}
-                            <div>{{ r.next_run }} • {{ r.name }} ({{ r.type }}) - {{ r.currency or '' }}{{ '%.2f'|format(r.amount) }}</div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <small class="text-secondary">No upcoming items.</small>
-                {% endif %}
-            </div>
-            <span class="avatar-dot" style="background:#4fb3ff"></span>
+    <div class="metric-card">
+        <h6>Remaining Balance</h6>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="value {% if remaining < 0 %}text-danger{% else %}text-success{% endif %}">{{ '%.2f'|format(remaining) }}</div>
+            <span class="pill">Period</span>
         </div>
     </div>
 </div>
-
-{% if tx_count == 0 or budget_count == 0 or not goal %}
-<div class="card glass-card mb-3 onboarding-card">
-    <div class="card-body">
-        <div class="d-flex flex-wrap align-items-center justify-content-between">
-            <div>
-                <h5 class="card-title mb-1">Quick start</h5>
-                <p class="text-secondary mb-2">Complete these steps to get the most out of Pulse.</p>
-                <ul class="list-unstyled mb-0 text-secondary small">
-                    <li>{% if tx_count > 0 %}✅{% else %}⬜{% endif %} Add your first transaction</li>
-                    <li>{% if budget_count > 0 %}✅{% else %}⬜{% endif %} Set a budget</li>
-                    <li>{% if goal %}✅{% else %}⬜{% endif %} Create a savings goal</li>
-                </ul>
-            </div>
-            <div class="d-flex gap-2 mt-2 mt-md-0">
-                <a href="{{ url_for('main.add_transaction') }}" class="btn btn-primary btn-sm">Add transaction</a>
-                <a href="{{ url_for('main.budgets') }}" class="btn btn-outline-light btn-sm">Create budget</a>
-                <a href="{{ url_for('main.savings') }}" class="btn btn-outline-light btn-sm">Savings goal</a>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
 
 <div class="row g-3">
     <div class="col-lg-6">
-                <div class="card glass-card chart-card">
+        <div class="card glass-card chart-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <h5 class="card-title mb-0">Spending by Category</h5>
                         <small class="text-secondary">Expenses grouped by category</small>
                     </div>
                 </div>
-                <canvas id="categoryChart" height="180"></canvas>
+                <canvas id="categoryChart" height="200"></canvas>
             </div>
         </div>
     </div>
     <div class="col-lg-6">
         <div class="card glass-card chart-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <h5 class="card-title mb-0">Monthly Net</h5>
                         <small class="text-secondary">Income minus expenses per month</small>
                     </div>
                 </div>
-                <canvas id="monthlyChart" height="180"></canvas>
+                <canvas id="monthlyChart" height="200"></canvas>
             </div>
         </div>
     </div>
@@ -159,53 +92,22 @@
 
 <div class="row g-3 mt-1">
     <div class="col-lg-8">
-        <div class="card glass-card">
+        <div class="card glass-card chart-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <h5 class="card-title mb-0">Balance Over Time</h5>
                         <small class="text-secondary">Cumulative balance trajectory</small>
                     </div>
                 </div>
-                <canvas id="balanceChart" height="180"></canvas>
+                <canvas id="balanceChart" height="210"></canvas>
             </div>
         </div>
     </div>
     <div class="col-lg-4">
         <div class="card glass-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <h5 class="card-title mb-0">Budgets</h5>
-                        <small class="text-secondary">Current period progress</small>
-                    </div>
-                    <a class="text-decoration-none" href="{{ url_for('main.budgets') }}">View all</a>
-                </div>
-                {% if budgets %}
-                    {% for item in budgets %}
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <div class="fw-semibold">{{ item.budget.category or "All categories" }}</div>
-                                    <small class="text-secondary">${{ '%.2f'|format(item.spent) }} of ${{ '%.2f'|format(item.budget.amount) }}</small>
-                                </div>
-                                <div class="text-end">
-                                    <div class="fw-bold {% if item.percent > 100 %}text-danger{% else %}text-success{% endif %}">{{ '%.0f'|format(item.percent) }}%</div>
-                                </div>
-                            </div>
-                            <div class="progress mt-2">
-                                <div class="progress-bar {% if item.percent > 100 %}over{% else %}safe{% endif %}" role="progressbar" style="width: {{ item.percent if item.percent < 100 else 100 }}%;"></div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-secondary mb-0">No budgets set.</p>
-                {% endif %}
-            </div>
-        </div>
-        <div class="card glass-card mt-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <h5 class="card-title mb-0">Alerts</h5>
                         <small class="text-secondary">Large spends, budgets, recurring</small>
@@ -235,7 +137,7 @@
         </div>
         <div class="card glass-card mt-3">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <h5 class="card-title mb-0">Recent Transactions</h5>
                     </div>
@@ -247,7 +149,7 @@
                         <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-light-subtle">
                             <div>
                                 <div class="fw-semibold">{{ tx.category }}</div>
-                                <small class="text-secondary">{{ tx.date.strftime('%Y-%m-%d') }} � {{ tx.description or 'No description' }}</small>
+                                <small class="text-secondary">{{ tx.date.strftime('%Y-%m-%d') }} · {{ tx.description or 'No description' }}</small>
                             </div>
                             <div class="fw-bold {% if tx.type == 'expense' %}text-danger{% else %}text-success{% endif %}">
                                 {% if tx.type == 'expense' %}-{% else %}+{% endif %}${{ '%.2f'|format(tx.amount) }}
@@ -262,7 +164,7 @@
         </div>
         <div class="card glass-card mt-3">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <h5 class="card-title mb-0">Savings Goal</h5>
                         <small class="text-secondary">Track your progress</small>
@@ -270,15 +172,15 @@
                     <a class="text-decoration-none" href="{{ url_for('main.savings') }}">Manage</a>
                 </div>
                 {% if goal %}
-                    {% set percent = goal_percent %}
+                    {% set percent = goal_percent if goal_percent < 100 else 100 %}
                     <div class="d-flex justify-content-between">
                         <div class="fw-semibold">{{ goal.name }}</div>
                         <div class="text-end">
-                            <span class="fw-bold">{{ '%.0f'|format(percent) if percent < 999 else '999+' }}%</span>
+                            <span class="fw-bold">{{ '%.0f'|format(percent) }}%</span>
                         </div>
                     </div>
                     <div class="progress mt-2">
-                        <div class="progress-bar safe" style="width: {{ 100 if percent > 100 else percent }}%"></div>
+                        <div class="progress-bar safe" style="width: {{ percent }}%"></div>
                     </div>
                     <small class="text-secondary d-block mt-2">
                         ${{ '%.2f'|format(goal.current_amount) }} / ${{ '%.2f'|format(goal.target_amount or 0) }}
@@ -292,66 +194,29 @@
 </div>
 
 <div class="row g-3 mt-1">
-    <div class="col-lg-12">
-        <div class="card glass-card">
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="stat-tile">
-                            <div>
-                                <div class="stat-label">This Week Net</div>
-                                <div class="stat-value {% if net_this_week < 0 %}text-danger{% else %}text-success{% endif %}">
-                                    {{ '%.2f'|format(net_this_week) }}
-                                </div>
-                                <small class="text-secondary">vs last week: {{ '%.2f'|format(net_last_week) }}</small>
-                            </div>
-                            {% set delta = net_this_week - net_last_week %}
-                            <span class="avatar-dot" style="background:{% if delta < 0 %}#ff6b6b{% else %}#38d996{% endif %}"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="stat-tile">
-                            <div>
-                                <div class="stat-label">Upcoming Recurring</div>
-                                {% if upcoming_recurring %}
-                                    <div class="text-secondary small">
-                                        {% for r in upcoming_recurring %}
-                                            <div>{{ r.next_run }} • {{ r.name }} ({{ r.type }}) - {{ r.currency or '' }}{{ '%.2f'|format(r.amount) }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <small class="text-secondary">No upcoming items.</small>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="col-lg-6">
         <div class="card glass-card chart-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <h5 class="card-title mb-0">Income vs Expenses</h5>
                         <small class="text-secondary">Stacked by month</small>
                     </div>
                 </div>
-                <canvas id="incomeExpenseChart" height="180"></canvas>
+                <canvas id="incomeExpenseChart" height="200"></canvas>
             </div>
         </div>
     </div>
     <div class="col-lg-6">
         <div class="card glass-card chart-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <h5 class="card-title mb-0">Top Categories (30d)</h5>
                         <small class="text-secondary">Greatest spend past 30 days</small>
                     </div>
                 </div>
-                <canvas id="topCategoriesChart" height="180"></canvas>
+                <canvas id="topCategoriesChart" height="200"></canvas>
             </div>
         </div>
     </div>
@@ -361,26 +226,26 @@
     <div class="col-lg-12">
         <div class="card glass-card chart-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <h5 class="card-title mb-0">Forecast</h5>
                         <small class="text-secondary">Projected balance next 30 days</small>
                     </div>
                 </div>
-                <canvas id="forecastChart" height="180"></canvas>
+                <canvas id="forecastChart" height="210"></canvas>
             </div>
         </div>
     </div>
     <div class="col-lg-12">
         <div class="card glass-card chart-card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <h5 class="card-title mb-0">Pro Trend</h5>
                         <small class="text-secondary">Trading-style balance view</small>
                     </div>
                 </div>
-                <canvas id="proTrendChart" height="200"></canvas>
+                <canvas id="proTrendChart" height="220"></canvas>
             </div>
         </div>
     </div>
@@ -405,18 +270,11 @@
     const catCtx = document.getElementById('categoryChart');
     const categories = Object.keys(categoryData);
     const catValues = categories.map(k => Math.abs(categoryData[k]));
-    const catColors = categories.map(k => catColorMap[k] || '#4fb3ff');
+    const catColors = categories.map(k => catColorMap[k] || '#5c8dff');
     new Chart(catCtx, {
         type: 'doughnut',
-        data: {
-            labels: categories,
-            datasets: [{
-                data: catValues,
-                backgroundColor: catColors,
-                borderWidth: 0
-            }]
-        },
-        options: { plugins: { legend: { position: 'bottom', labels: { color: '#dfe7f5' } } } }
+        data: { labels: categories, datasets: [{ data: catValues, backgroundColor: catColors, borderWidth: 0 }] },
+        options: { plugins: { legend: { position: 'bottom' } }, cutout: '60%' }
     });
 
     const monthlyCtx = document.getElementById('monthlyChart');
@@ -427,41 +285,18 @@
             datasets: [{
                 label: 'Net',
                 data: monthlyData.map(m => m[1]),
-                backgroundColor: monthlyData.map(m => m[1] >= 0 ? 'rgba(56, 217, 150, 0.6)' : 'rgba(255, 107, 107, 0.6)'),
-                borderColor: monthlyData.map(m => m[1] >= 0 ? '#38d996' : '#ff6b6b'),
-                borderWidth: 1,
+                backgroundColor: monthlyData.map(m => m[1] >= 0 ? 'rgba(54, 211, 153, 0.6)' : 'rgba(255, 107, 107, 0.6)'),
+                borderRadius: 8
             }]
         },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
-        }
+        options: { plugins: { legend: { display: false } } }
     });
 
     const balanceCtx = document.getElementById('balanceChart');
     new Chart(balanceCtx, {
         type: 'line',
-        data: {
-            labels: balanceData.map(p => p[0]),
-            datasets: [{
-                label: 'Balance',
-                data: balanceData.map(p => p[1]),
-                fill: true,
-                backgroundColor: 'rgba(79, 179, 255, 0.15)',
-                borderColor: '#4fb3ff',
-                tension: 0.3
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
-        }
+        data: { labels: balanceData.map(p => p[0]), datasets: [{ label: 'Balance', data: balanceData.map(p => p[1]), fill: true, backgroundColor: 'rgba(92,141,255,0.15)', borderColor: '#5c8dff', tension: 0.3, pointRadius: 0 }] },
+        options: { plugins: { legend: { display: false } } }
     });
 
     const incomeExpenseCtx = document.getElementById('incomeExpenseChart');
@@ -471,116 +306,39 @@
         data: {
             labels: ieLabels,
             datasets: [
-                {
-                    label: 'Income',
-                    data: monthlyIE.map(m => m.income),
-                    backgroundColor: 'rgba(56, 217, 150, 0.6)',
-                    borderColor: '#38d996',
-                    borderWidth: 1,
-                },
-                {
-                    label: 'Expenses',
-                    data: monthlyIE.map(m => m.expense),
-                    backgroundColor: 'rgba(255, 107, 107, 0.6)',
-                    borderColor: '#ff6b6b',
-                    borderWidth: 1,
-                },
+                { label: 'Income', data: monthlyIE.map(m => m.income), backgroundColor: 'rgba(54, 211, 153, 0.6)', borderRadius: 6 },
+                { label: 'Expenses', data: monthlyIE.map(m => m.expense), backgroundColor: 'rgba(255, 107, 107, 0.6)', borderRadius: 6 },
             ]
         },
-        options: {
-            responsive: true,
-            plugins: { legend: { labels: { color: '#dfe7f5' } } },
-            scales: {
-                x: { stacked: true, ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { stacked: true, ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
-        }
+        options: { responsive: true, plugins: { legend: { labels: { color: '#dfe7f5' } } }, scales: { x: { stacked: true }, y: { stacked: true } } }
     });
 
     const topCatCtx = document.getElementById('topCategoriesChart');
     const topCatEntries = Object.entries(topCat).sort((a,b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0,5);
-    const topColors = topCatEntries.map(e => catColorMap[e[0]] || '#ffb347');
+    const topColors = topCatEntries.map(e => catColorMap[e[0]] || '#fbbf24');
     new Chart(topCatCtx, {
         type: 'bar',
-        data: {
-            labels: topCatEntries.map(e => e[0]),
-            datasets: [{
-                label: 'Spend',
-                data: topCatEntries.map(e => Math.abs(e[1])),
-                backgroundColor: topColors,
-                borderColor: topColors,
-                borderWidth: 1,
-                borderRadius: 6,
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#dfe7f5' }, grid: { display: false } }
-            }
-        }
+        data: { labels: topCatEntries.map(e => e[0]), datasets: [{ label: 'Spend', data: topCatEntries.map(e => Math.abs(e[1])), backgroundColor: topColors, borderRadius: 8 }] },
+        options: { indexAxis: 'y', plugins: { legend: { display: false } } }
     });
 
     const forecastCtx = document.getElementById('forecastChart');
     new Chart(forecastCtx, {
         type: 'line',
-        data: {
-            labels: forecastData.map(p => p[0]),
-            datasets: [{
-                label: 'Projected Balance',
-                data: forecastData.map(p => p[1]),
-                fill: false,
-                borderColor: '#a78bfa',
-                backgroundColor: 'rgba(167, 139, 250, 0.2)',
-                tension: 0.3,
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
-        }
+        data: { labels: forecastData.map(p => p[0]), datasets: [{ label: 'Projected Balance', data: forecastData.map(p => p[1]), fill: false, borderColor: '#a78bfa', backgroundColor: 'rgba(167, 139, 250, 0.2)', tension: 0.3, pointRadius: 0 }] },
+        options: { plugins: { legend: { display: false } } }
     });
 
-    // Pro trend (trading-style) using balanceData
     const proCtx = document.getElementById('proTrendChart');
     const proLabels = balanceData.map(p => p[0]);
     const proValues = balanceData.map(p => p[1]);
     const gradient = proCtx.getContext('2d').createLinearGradient(0, 0, 0, proCtx.height);
-    gradient.addColorStop(0, 'rgba(79, 179, 255, 0.35)');
-    gradient.addColorStop(1, 'rgba(79, 179, 255, 0)');
+    gradient.addColorStop(0, 'rgba(92, 141, 255, 0.35)');
+    gradient.addColorStop(1, 'rgba(92, 141, 255, 0)');
     new Chart(proCtx, {
         type: 'line',
-        data: {
-            labels: proLabels,
-            datasets: [{
-                label: 'Balance',
-                data: proValues,
-                borderColor: '#4fb3ff',
-                backgroundColor: gradient,
-                fill: true,
-                tension: 0.25,
-                borderWidth: 2.5,
-                pointRadius: 0,
-            }]
-        },
-        options: {
-            plugins: {
-                legend: { display: false },
-                tooltip: { mode: 'index', intersect: false }
-            },
-            interaction: { mode: 'index', intersect: false },
-            scales: {
-                x: { ticks: { color: '#dfe7f5' }, grid: { display: false } },
-                y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
-        }
+        data: { labels: proLabels, datasets: [{ label: 'Balance', data: proValues, borderColor: '#5c8dff', backgroundColor: gradient, fill: true, tension: 0.25, borderWidth: 2.5, pointRadius: 0 }] },
+        options: { plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } }, interaction: { mode: 'index', intersect: false } }
     });
 </script>
 {% endblock %}
-
-

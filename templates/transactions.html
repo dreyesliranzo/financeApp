@@ -3,9 +3,9 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
     <div>
         <h2 class="fw-bold mb-0">Transactions</h2>
-        <p class="text-secondary">Filter, edit, and manage your records.</p>
+        <p class="text-secondary mb-0">Filter, edit, and manage your records.</p>
     </div>
-    <div>
+    <div class="d-flex gap-2">
         <a href="{{ url_for('main.add_transaction') }}" class="btn btn-primary">+ Add Transaction</a>
     </div>
 </div>
@@ -38,13 +38,13 @@
                 <option value="amount_asc" {% if sort == 'amount_asc' %}selected{% endif %}>Amount (low)</option>
             </select>
         </div>
-        <div class="col-sm-12 d-flex gap-2">
-            <button class="btn btn-outline-light">Apply</button>
-            <a class="btn btn-secondary" href="{{ url_for('main.transactions') }}">Reset</a>
-            <a class="btn btn-sm btn-outline-info" href="{{ url_for('main.transactions', range='this_week') }}">This week</a>
-            <a class="btn btn-sm btn-outline-info" href="{{ url_for('main.transactions', range='last_week') }}">Last week</a>
-            <a class="btn btn-sm btn-outline-info" href="{{ url_for('main.transactions', range='30d') }}">Last 30d</a>
-            <input type="search" id="txSearch" class="form-control form-control-sm" placeholder="Search description/category" style="max-width:200px;">
+        <div class="col-sm-12 d-flex flex-wrap gap-2 mt-2">
+            <button class="btn btn-primary">Apply</button>
+            <a class="btn btn-outline-light" href="{{ url_for('main.transactions') }}">Reset</a>
+            <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.transactions', range='this_week') }}">This week</a>
+            <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.transactions', range='last_week') }}">Last week</a>
+            <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.transactions', range='30d') }}">Last 30d</a>
+            <input type="search" id="txSearch" class="form-control form-control-sm" placeholder="Search description/category" style="max-width:220px;">
         </div>
     </div>
 </form>
@@ -67,11 +67,7 @@
             {% for tx in transactions %}
                 <tr>
                     <td>{{ tx.date.strftime('%Y-%m-%d') }}</td>
-                    <td>
-                        <span class="badge {% if tx.type == 'expense' %}badge-expense{% else %}badge-income{% endif %}">
-                            {{ tx.type.title() }}
-                        </span>
-                    </td>
+                    <td><span class="badge {% if tx.type == 'expense' %}badge-expense{% else %}badge-income{% endif %}">{{ tx.type.title() }}</span></td>
                     <td>
                         {% set col = cat_colors.get(tx.category) if cat_colors else None %}
                         <span class="badge" style="background-color: {{ col or '#6c757d' }};">{{ tx.category }}</span>
@@ -104,8 +100,8 @@
                 <button class="btn btn-sm btn-outline-light" id="toggleDensity" type="button">Toggle Compact</button>
             </div>
             <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-info" id="savePreset" type="button">Save Filter Preset</button>
-                <button class="btn btn-sm btn-outline-info" id="loadPreset" type="button">Load Preset</button>
+                <button class="btn btn-sm btn-outline-light" id="savePreset" type="button">Save Filter Preset</button>
+                <button class="btn btn-sm btn-outline-light" id="loadPreset" type="button">Load Preset</button>
             </div>
         </div>
         {% if pagination and pagination.pages > 1 %}
@@ -185,7 +181,6 @@
             t = setTimeout(() => fn(...args), delay);
         };
     };
-
     const filterRows = (term) => {
         const q = (term || '').toLowerCase();
         rows.forEach(r => {
@@ -193,7 +188,6 @@
             r.style.display = text.includes(q) ? '' : 'none';
         });
     };
-
     searchInput?.addEventListener('input', debounce((e) => filterRows(e.target.value), 200));
     filterRows('');
 </script>
