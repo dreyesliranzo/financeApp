@@ -1,184 +1,108 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-    <div>
-        <h2 class="fw-bold mb-0">Reports</h2>
-        <p class="text-secondary">Visualize your spending trends.</p>
-    </div>
-    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-light">Back to Dashboard</a>
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <div>
+    <h2 class="text-3xl font-bold text-white">Reports</h2>
+    <p class="text-sm text-text-muted">Visualize spending, income, and balances.</p>
+  </div>
 </div>
 
-<div class="row g-3">
-    <div class="col-lg-6">
-        <div class="card glass-card chart-card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="card-title mb-0">Spending by Category</h5>
-                </div>
-                <canvas id="categoryChart" height="220"></canvas>
-            </div>
-        </div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h5 class="text-lg font-semibold text-white mb-0">Spending by Category</h5>
+        <p class="text-xs text-text-muted">Expenses grouped by category</p>
+      </div>
     </div>
-    <div class="col-lg-6">
-        <div class="card glass-card chart-card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="card-title mb-0">Monthly Net</h5>
-                </div>
-                <canvas id="monthlyChart" height="220"></canvas>
-            </div>
-        </div>
+    <div class="h-72"><canvas id="categoryChart"></canvas></div>
+  </div>
+  <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h5 class="text-lg font-semibold text-white mb-0">Monthly Net</h5>
+        <p class="text-xs text-text-muted">Income minus expenses per month</p>
+      </div>
     </div>
+    <div class="h-72"><canvas id="monthlyChart"></canvas></div>
+  </div>
 </div>
-<div class="row g-3 mt-1">
-    <div class="col-12">
-        <div class="card glass-card chart-card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="card-title mb-0">Balance Over Time</h5>
-                </div>
-                <canvas id="balanceChart" height="240"></canvas>
-            </div>
-        </div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+  <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h5 class="text-lg font-semibold text-white mb-0">Income vs Expenses</h5>
+        <p class="text-xs text-text-muted">Stacked by month</p>
+      </div>
     </div>
-    <div class="col-12">
-        <div class="card glass-card chart-card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="card-title mb-0">Income vs Expenses</h5>
-                </div>
-                <canvas id="incomeExpenseChart" height="240"></canvas>
-            </div>
-        </div>
+    <div class="h-72"><canvas id="incomeExpenseChart"></canvas></div>
+  </div>
+  <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h5 class="text-lg font-semibold text-white mb-0">Balance Over Time</h5>
+        <p class="text-xs text-text-muted">Cumulative balance trajectory</p>
+      </div>
     </div>
+    <div class="h-72"><canvas id="balanceChart"></canvas></div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 gap-6 mt-6">
+  <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h5 class="text-lg font-semibold text-white mb-0">Forecast</h5>
+        <p class="text-xs text-text-muted">Projected balance next 30 days</p>
+      </div>
+    </div>
+    <div class="h-80"><canvas id="forecastChart"></canvas></div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    const categoryData = {{ category_totals|tojson }};
-    const monthlyData = {{ monthly|tojson }};
-    const balanceData = {{ balance_points|tojson }};
-    const monthlyIE = {{ monthly_ie|tojson }};
-    const forecastData = {{ forecast|tojson }};
-    const catColorMap = {{ cat_colors|tojson }};
+  const categoryData = {{ category_totals|tojson }};
+  const monthlyData = {{ monthly|tojson }};
+  const balanceData = {{ balance_points|tojson }};
+  const forecastData = {{ forecast|tojson }};
+  const monthlyIE = {{ monthly_ie|tojson }};
+  const catColorMap = {{ cat_colors|tojson }};
 
-    const catCtx = document.getElementById('categoryChart');
-    const categories = Object.keys(categoryData);
-    const catValues = categories.map(k => Math.abs(categoryData[k]));
-    const catColors = categories.map(k => catColorMap[k] || '#4fb3ff');
-    new Chart(catCtx, {
-        type: 'doughnut',
-        data: {
-            labels: categories,
-            datasets: [{
-                data: catValues,
-                backgroundColor: catColors,
-                borderWidth: 0
-            }]
-        },
-        options: { plugins: { legend: { position: 'bottom', labels: { color: '#dfe7f5' } } } }
-    });
+  Chart.defaults.color = '#dfe7f5';
+  Chart.defaults.font.size = 11;
+  Chart.defaults.plugins.legend.labels.boxWidth = 10;
+  Chart.defaults.plugins.legend.labels.boxHeight = 10;
 
-    const monthlyCtx = document.getElementById('monthlyChart');
-    new Chart(monthlyCtx, {
-        type: 'bar',
-        data: {
-            labels: monthlyData.map(m => m[0]),
-            datasets: [{
-                label: 'Net',
-                data: monthlyData.map(m => m[1]),
-                backgroundColor: monthlyData.map(m => m[1] >= 0 ? 'rgba(56, 217, 150, 0.6)' : 'rgba(255, 107, 107, 0.6)'),
-                borderColor: monthlyData.map(m => m[1] >= 0 ? '#38d996' : '#ff6b6b'),
-                borderWidth: 1,
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
-        }
-    });
+  const catCtx = document.getElementById('categoryChart');
+  const categories = Object.keys(categoryData);
+  const catValues = categories.map(k => Math.abs(categoryData[k]));
+  const catColors = categories.map(k => catColorMap[k] || '#5c8dff');
+  new Chart(catCtx, { type: 'doughnut', data: { labels: categories, datasets: [{ data: catValues, backgroundColor: catColors, borderWidth: 0 }] }, options: { plugins: { legend: { position: 'bottom' } }, cutout: '60%' } });
 
-    const balanceCtx = document.getElementById('balanceChart');
-    new Chart(balanceCtx, {
-        type: 'line',
-        data: {
-            labels: balanceData.map(p => p[0]),
-            datasets: [{
-                label: 'Balance',
-                data: balanceData.map(p => p[1]),
-                fill: true,
-                backgroundColor: 'rgba(79, 179, 255, 0.15)',
-                borderColor: '#4fb3ff',
-                tension: 0.3
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
-        }
-    });
+  const monthlyCtx = document.getElementById('monthlyChart');
+  new Chart(monthlyCtx, { type: 'bar', data: { labels: monthlyData.map(m => m[0]), datasets: [{ label: 'Net', data: monthlyData.map(m => m[1]), backgroundColor: monthlyData.map(m => m[1] >= 0 ? 'rgba(54, 211, 153, 0.7)' : 'rgba(239, 68, 68, 0.7)'), borderRadius: 10 }] }, options: { plugins: { legend: { display: false } } } });
 
-    const incomeExpenseCtx = document.getElementById('incomeExpenseChart');
-    const ieLabels = monthlyIE.map(m => m.month);
-    new Chart(incomeExpenseCtx, {
-        type: 'bar',
-        data: {
-            labels: ieLabels,
-            datasets: [
-                {
-                    label: 'Income',
-                    data: monthlyIE.map(m => m.income),
-                    backgroundColor: 'rgba(56, 217, 150, 0.6)',
-                    borderColor: '#38d996',
-                    borderWidth: 1,
-                },
-                {
-                    label: 'Expenses',
-                    data: monthlyIE.map(m => m.expense),
-                    backgroundColor: 'rgba(255, 107, 107, 0.6)',
-                    borderColor: '#ff6b6b',
-                    borderWidth: 1,
-                },
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { labels: { color: '#dfe7f5' } } },
-            scales: {
-                x: { stacked: true, ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { stacked: true, ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
-        }
-    });
+  const incomeExpenseCtx = document.getElementById('incomeExpenseChart');
+  const ieLabels = monthlyIE.map(m => m.month);
+  new Chart(incomeExpenseCtx, {
+    type: 'bar',
+    data: {
+      labels: ieLabels,
+      datasets: [
+        { label: 'Income', data: monthlyIE.map(m => m.income), backgroundColor: 'rgba(54, 211, 153, 0.7)', borderRadius: 8 },
+        { label: 'Expenses', data: monthlyIE.map(m => m.expense), backgroundColor: 'rgba(239, 68, 68, 0.7)', borderRadius: 8 },
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { labels: { color: '#dfe7f5' } } }, scales: { x: { stacked: true }, y: { stacked: true } } }
+  });
 
-    const forecastCtx = document.getElementById('forecastChart');
-    new Chart(forecastCtx, {
-        type: 'line',
-        data: {
-            labels: forecastData.map(p => p[0]),
-            datasets: [{
-                label: 'Projected Balance',
-                data: forecastData.map(p => p[1]),
-                fill: false,
-                borderColor: '#a78bfa',
-                backgroundColor: 'rgba(167, 139, 250, 0.2)',
-                tension: 0.3,
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#dfe7f5' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
-        }
-    });
+  const balanceCtx = document.getElementById('balanceChart');
+  new Chart(balanceCtx, { type: 'line', data: { labels: balanceData.map(p => p[0]), datasets: [{ label: 'Balance', data: balanceData.map(p => p[1]), fill: true, backgroundColor: 'rgba(92,141,255,0.15)', borderColor: '#5c8dff', tension: 0.3, pointRadius: 0 }] }, options: { plugins: { legend: { display: false } } } });
+
+  const forecastCtx = document.getElementById('forecastChart');
+  new Chart(forecastCtx, { type: 'line', data: { labels: forecastData.map(p => p[0]), datasets: [{ label: 'Projected Balance', data: forecastData.map(p => p[1]), fill: false, borderColor: '#a78bfa', backgroundColor: 'rgba(167, 139, 250, 0.2)', tension: 0.3, pointRadius: 0 }] }, options: { plugins: { legend: { display: false } } } });
 </script>
 {% endblock %}

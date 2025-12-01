@@ -1,195 +1,195 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-    <div>
-        <h2 class="fw-bold mb-0">Transactions</h2>
-        <p class="text-secondary mb-0">Filter, edit, and manage your records.</p>
-    </div>
-    <div class="d-flex gap-2">
-        <a href="{{ url_for('main.add_transaction') }}" class="btn btn-primary">+ Add Transaction</a>
-    </div>
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <div>
+    <h2 class="text-3xl font-bold text-white">Transactions</h2>
+    <p class="text-sm text-text-muted">Filter, edit, and manage your records.</p>
+  </div>
+  <a href="{{ url_for('main.add_transaction') }}" class="px-4 py-2 rounded-xl bg-primary text-white font-semibold shadow-button hover:brightness-110">+ Add Transaction</a>
 </div>
 
-<form class="filter-bar mb-3" method="get">
-    <div class="row g-2 align-items-end">
-        <div class="col-sm-3">
-            <label class="form-label">Start</label>
-            <input type="date" name="start" class="form-control" value="{{ start }}">
-        </div>
-        <div class="col-sm-3">
-            <label class="form-label">End</label>
-            <input type="date" name="end" class="form-control" value="{{ end }}">
-        </div>
-        <div class="col-sm-3">
-            <label class="form-label">Category</label>
-            <select name="category" class="form-select">
-                <option value="">All</option>
-                {% for cat in categories %}
-                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-sm-3">
-            <label class="form-label">Sort</label>
-            <select name="sort" class="form-select">
-                <option value="date_desc" {% if sort == 'date_desc' %}selected{% endif %}>Date (newest)</option>
-                <option value="date_asc" {% if sort == 'date_asc' %}selected{% endif %}>Date (oldest)</option>
-                <option value="amount_desc" {% if sort == 'amount_desc' %}selected{% endif %}>Amount (high)</option>
-                <option value="amount_asc" {% if sort == 'amount_asc' %}selected{% endif %}>Amount (low)</option>
-            </select>
-        </div>
-        <div class="col-sm-12 d-flex flex-wrap gap-2 mt-2">
-            <button class="btn btn-primary">Apply</button>
-            <a class="btn btn-outline-light" href="{{ url_for('main.transactions') }}">Reset</a>
-            <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.transactions', range='this_week') }}">This week</a>
-            <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.transactions', range='last_week') }}">Last week</a>
-            <a class="btn btn-sm btn-outline-light" href="{{ url_for('main.transactions', range='30d') }}">Last 30d</a>
-            <input type="search" id="txSearch" class="form-control form-control-sm" placeholder="Search description/category" style="max-width:220px;">
-        </div>
-    </div>
+<form class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-4 mb-4" method="get">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+    <label class="text-sm text-white font-semibold flex flex-col gap-1">
+      Start
+      <input type="date" name="start" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" value="{{ start }}">
+    </label>
+    <label class="text-sm text-white font-semibold flex flex-col gap-1">
+      End
+      <input type="date" name="end" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" value="{{ end }}">
+    </label>
+    <label class="text-sm text-white font-semibold flex flex-col gap-1">
+      Category
+      <select name="category" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary">
+        <option value="">All</option>
+        {% for cat in categories %}
+          <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="text-sm text-white font-semibold flex flex-col gap-1">
+      Sort
+      <select name="sort" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary">
+        <option value="date_desc" {% if sort == 'date_desc' %}selected{% endif %}>Date (newest)</option>
+        <option value="date_asc" {% if sort == 'date_asc' %}selected{% endif %}>Date (oldest)</option>
+        <option value="amount_desc" {% if sort == 'amount_desc' %}selected{% endif %}>Amount (high)</option>
+        <option value="amount_asc" {% if sort == 'amount_asc' %}selected{% endif %}>Amount (low)</option>
+      </select>
+    </label>
+  </div>
+  <div class="flex flex-wrap items-center gap-2 mt-3">
+    <button class="px-4 py-2 rounded-xl bg-primary text-white font-semibold shadow-button hover:brightness-110">Apply</button>
+    <a class="px-3 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5" href="{{ url_for('main.transactions') }}">Reset</a>
+    <a class="px-3 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5 text-xs" href="{{ url_for('main.transactions', range='this_week') }}">This week</a>
+    <a class="px-3 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5 text-xs" href="{{ url_for('main.transactions', range='last_week') }}">Last week</a>
+    <a class="px-3 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5 text-xs" href="{{ url_for('main.transactions', range='30d') }}">Last 30d</a>
+    <input type="search" id="txSearch" class="rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" placeholder="Search description/category">
+  </div>
 </form>
 
-<div class="card glass-card" id="transactionsCard">
-    <div class="card-body table-responsive">
-        {% if transactions %}
-        <table class="table table-hover align-middle">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Category</th>
-                    <th>Description</th>
-                    <th class="text-end">Amount</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for tx in transactions %}
-                <tr>
-                    <td>{{ tx.date.strftime('%Y-%m-%d') }}</td>
-                    <td><span class="badge {% if tx.type == 'expense' %}badge-expense{% else %}badge-income{% endif %}">{{ tx.type.title() }}</span></td>
-                    <td>
-                        {% set col = cat_colors.get(tx.category) if cat_colors else None %}
-                        <span class="badge" style="background-color: {{ col or '#6c757d' }};">{{ tx.category }}</span>
-                    </td>
-                    <td>{{ tx.description or '-' }}</td>
-                    <td class="text-end {% if tx.type == 'expense' %}text-danger{% else %}text-success{% endif %}">
-                        {% if tx.type == 'expense' %}-{% else %}+{% endif %}${{ '%.2f'|format(tx.amount) }}
-                    </td>
-                    <td class="text-end">
-                        {% if tx.attachments %}
-                            <a class="text-decoration-none me-1" href="{{ url_for('main.attachment', filename=tx.attachments[0].filename) }}">📎</a>
-                        {% endif %}
-                        <a href="{{ url_for('main.edit_transaction', tx_id=tx.id) }}" class="btn btn-sm btn-outline-light">Edit</a>
-                        <form action="{{ url_for('main.delete_transaction', tx_id=tx.id) }}" method="post" class="d-inline" onsubmit="return confirm('Delete this transaction?');">
-                            <button class="btn btn-sm btn-danger">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-            <div class="text-center py-4">
-                <p class="text-secondary mb-2">No transactions found.</p>
-                <a href="{{ url_for('main.add_transaction') }}" class="btn btn-primary btn-sm">Add your first transaction</a>
-            </div>
-        {% endif %}
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-light" id="toggleDensity" type="button">Toggle Compact</button>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-light" id="savePreset" type="button">Save Filter Preset</button>
-                <button class="btn btn-sm btn-outline-light" id="loadPreset" type="button">Load Preset</button>
-            </div>
-        </div>
-        {% if pagination and pagination.pages > 1 %}
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <small class="text-secondary">Page {{ pagination.page }} of {{ pagination.pages }}</small>
-            <div class="btn-group">
-                {% set prev_params = pagination_params.copy() %}
-                {% set _ = prev_params.update({'page': pagination.prev_num, 'per_page': per_page}) %}
-                <a class="btn btn-sm btn-outline-light {% if not pagination.has_prev %}disabled{% endif %}"
-                   href="{% if pagination.has_prev %}{{ url_for('main.transactions', **prev_params) }}{% else %}#{% endif %}">Previous</a>
-                {% set next_params = pagination_params.copy() %}
-                {% set _ = next_params.update({'page': pagination.next_num, 'per_page': per_page}) %}
-                <a class="btn btn-sm btn-outline-light {% if not pagination.has_next %}disabled{% endif %}"
-                   href="{% if pagination.has_next %}{{ url_for('main.transactions', **next_params) }}{% else %}#{% endif %}">Next</a>
-            </div>
-        </div>
-        {% endif %}
+<div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card" id="transactionsCard">
+  <div class="p-4">
+    {% if transactions %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm text-left">
+        <thead class="text-text-muted border-b border-white/5">
+          <tr>
+            <th class="py-3">Date</th>
+            <th class="py-3">Type</th>
+            <th class="py-3">Category</th>
+            <th class="py-3">Description</th>
+            <th class="py-3 text-right">Amount</th>
+            <th class="py-3 text-right"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+        {% for tx in transactions %}
+          <tr class="hover:bg-slate-900/50">
+            <td class="py-3">{{ tx.date.strftime('%Y-%m-%d') }}</td>
+            <td class="py-3"><span class="px-2 py-1 rounded-full text-xs {% if tx.type == 'expense' %}bg-danger/20 text-danger{% else %}bg-success/20 text-success{% endif %}">{{ tx.type.title() }}</span></td>
+            <td class="py-3">
+              {% set col = cat_colors.get(tx.category) if cat_colors else None %}
+              <span class="px-2 py-1 rounded-full text-xs" style="background-color: {{ col or '#6c757d' }};">{{ tx.category }}</span>
+            </td>
+            <td class="py-3">{{ tx.description or '-' }}</td>
+            <td class="py-3 text-right {% if tx.type == 'expense' %}text-danger{% else %}text-success{% endif %}">
+              {% if tx.type == 'expense' %}-{% else %}+{% endif %}${{ '%.2f'|format(tx.amount) }}
+            </td>
+            <td class="py-3 text-right space-x-2">
+              {% if tx.attachments %}
+                <a class="text-primary text-lg" title="Attachment" href="{{ url_for('main.attachment', filename=tx.attachments[0].filename) }}">📎</a>
+              {% endif %}
+              <a href="{{ url_for('main.edit_transaction', tx_id=tx.id) }}" class="px-3 py-1 rounded-lg border border-white/10 text-xs hover:bg-white/5">Edit</a>
+              <form action="{{ url_for('main.delete_transaction', tx_id=tx.id) }}" method="post" class="inline" onsubmit="return confirm('Delete this transaction?');">
+                <button class="px-3 py-1 rounded-lg bg-danger text-white text-xs hover:brightness-110">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
     </div>
+    {% else %}
+      <div class="text-center py-6">
+        <p class="text-text-muted mb-2">No transactions found.</p>
+        <a href="{{ url_for('main.add_transaction') }}" class="px-3 py-2 rounded-xl bg-primary text-white text-sm shadow-button hover:brightness-110">Add your first transaction</a>
+      </div>
+    {% endif %}
+
+    <div class="flex items-center justify-between mt-4">
+      <button class="px-3 py-2 rounded-xl border border-white/10 text-xs hover:bg-white/5" id="toggleDensity" type="button">Toggle Compact</button>
+      <div class="flex items-center gap-2">
+        <button class="px-3 py-2 rounded-xl border border-white/10 text-xs hover:bg-white/5" id="savePreset" type="button">Save Filter Preset</button>
+        <button class="px-3 py-2 rounded-xl border border-white/10 text-xs hover:bg-white/5" id="loadPreset" type="button">Load Preset</button>
+      </div>
+    </div>
+
+    {% if pagination and pagination.pages > 1 %}
+    <div class="flex items-center justify-between mt-3">
+      <small class="text-text-muted">Page {{ pagination.page }} of {{ pagination.pages }}</small>
+      <div class="flex items-center gap-2">
+        {% set prev_params = pagination_params.copy() %}
+        {% set _ = prev_params.update({'page': pagination.prev_num, 'per_page': per_page}) %}
+        <a class="px-3 py-2 rounded-xl border border-white/10 text-xs hover:bg-white/5 {% if not pagination.has_prev %}opacity-50 pointer-events-none{% endif %}"
+           href="{% if pagination.has_prev %}{{ url_for('main.transactions', **prev_params) }}{% else %}#{% endif %}">Previous</a>
+        {% set next_params = pagination_params.copy() %}
+        {% set _ = next_params.update({'page': pagination.next_num, 'per_page': per_page}) %}
+        <a class="px-3 py-2 rounded-xl border border-white/10 text-xs hover:bg-white/5 {% if not pagination.has_next %}opacity-50 pointer-events-none{% endif %}"
+           href="{% if pagination.has_next %}{{ url_for('main.transactions', **next_params) }}{% else %}#{% endif %}">Next</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
 </div>
 
 <form id="presetForm" method="POST" action="{{ url_for('main.transactions') }}">
-    <input type="hidden" name="action" value="">
-    <input type="hidden" name="start" value="">
-    <input type="hidden" name="end" value="">
-    <input type="hidden" name="category" value="">
-    <input type="hidden" name="sort" value="">
-    <input type="hidden" name="range" value="">
-    {{ csrf_field() if false }}
+  <input type="hidden" name="action" value="">
+  <input type="hidden" name="start" value="">
+  <input type="hidden" name="end" value="">
+  <input type="hidden" name="category" value="">
+  <input type="hidden" name="sort" value="">
+  <input type="hidden" name="range" value="">
+  {{ csrf_field() if false }}
 </form>
 
 {% block scripts %}
 <script>
-    const card = document.getElementById('transactionsCard');
-    const toggleBtn = document.getElementById('toggleDensity');
-    const saveBtn = document.getElementById('savePreset');
-    const loadBtn = document.getElementById('loadPreset');
-    const presetForm = document.getElementById('presetForm');
-    const searchInput = document.getElementById('txSearch');
-    const rows = document.querySelectorAll('#transactionsCard tbody tr');
+  const card = document.getElementById('transactionsCard');
+  const toggleBtn = document.getElementById('toggleDensity');
+  const saveBtn = document.getElementById('savePreset');
+  const loadBtn = document.getElementById('loadPreset');
+  const presetForm = document.getElementById('presetForm');
+  const searchInput = document.getElementById('txSearch');
+  const rows = document.querySelectorAll('#transactionsCard tbody tr');
 
-    const applyDensity = () => {
-        const mode = localStorage.getItem('txDensity') || 'regular';
-        if (mode === 'compact') {
-            card.classList.add('compact-table');
-        } else {
-            card.classList.remove('compact-table');
-        }
-    };
-    applyDensity();
-    toggleBtn?.addEventListener('click', () => {
-        const current = localStorage.getItem('txDensity') === 'compact' ? 'regular' : 'compact';
-        localStorage.setItem('txDensity', current);
-        applyDensity();
-    });
+  const applyDensity = () => {
+      const mode = localStorage.getItem('txDensity') || 'regular';
+      if (mode === 'compact') {
+          card.classList.add('text-xs');
+      } else {
+          card.classList.remove('text-xs');
+      }
+  };
+  applyDensity();
+  toggleBtn?.addEventListener('click', () => {
+      const current = localStorage.getItem('txDensity') === 'compact' ? 'regular' : 'compact';
+      localStorage.setItem('txDensity', current);
+      applyDensity();
+  });
 
-    saveBtn?.addEventListener('click', () => {
-        if (!presetForm) return;
-        presetForm.querySelector('input[name="action"]').value = 'save_preset';
-        presetForm.querySelector('input[name="start"]').value = document.querySelector('input[name="start"]')?.value || '';
-        presetForm.querySelector('input[name="end"]').value = document.querySelector('input[name="end"]')?.value || '';
-        presetForm.querySelector('input[name="category"]').value = document.querySelector('select[name="category"]')?.value || '';
-        presetForm.querySelector('input[name="sort"]').value = document.querySelector('select[name="sort"]')?.value || '';
-        presetForm.querySelector('input[name="range"]').value = "{{ range_filter or '' }}";
-        presetForm.submit();
-    });
+  saveBtn?.addEventListener('click', () => {
+      if (!presetForm) return;
+      presetForm.querySelector('input[name="action"]').value = 'save_preset';
+      presetForm.querySelector('input[name="start"]').value = document.querySelector('input[name="start"]')?.value || '';
+      presetForm.querySelector('input[name="end"]').value = document.querySelector('input[name="end"]')?.value || '';
+      presetForm.querySelector('input[name="category"]').value = document.querySelector('select[name="category"]')?.value || '';
+      presetForm.querySelector('input[name="sort"]').value = document.querySelector('select[name="sort"]')?.value || '';
+      presetForm.querySelector('input[name="range"]').value = "{{ range_filter or '' }}";
+      presetForm.submit();
+  });
 
-    loadBtn?.addEventListener('click', () => {
-        if (!presetForm) return;
-        presetForm.querySelector('input[name="action"]').value = 'load_preset';
-        presetForm.submit();
-    });
+  loadBtn?.addEventListener('click', () => {
+      if (!presetForm) return;
+      presetForm.querySelector('input[name="action"]').value = 'load_preset';
+      presetForm.submit();
+  });
 
-    const debounce = (fn, delay = 150) => {
-        let t;
-        return (...args) => {
-            clearTimeout(t);
-            t = setTimeout(() => fn(...args), delay);
-        };
-    };
-    const filterRows = (term) => {
-        const q = (term || '').toLowerCase();
-        rows.forEach(r => {
-            const text = r.innerText.toLowerCase();
-            r.style.display = text.includes(q) ? '' : 'none';
-        });
-    };
-    searchInput?.addEventListener('input', debounce((e) => filterRows(e.target.value), 200));
-    filterRows('');
+  const debounce = (fn, delay = 150) => {
+      let t;
+      return (...args) => {
+          clearTimeout(t);
+          t = setTimeout(() => fn(...args), delay);
+      };
+  };
+  const filterRows = (term) => {
+      const q = (term || '').toLowerCase();
+      rows.forEach(r => {
+          const text = r.innerText.toLowerCase();
+          r.style.display = text.includes(q) ? '' : 'none';
+      });
+  };
+  searchInput?.addEventListener('input', debounce((e) => filterRows(e.target.value), 200));
+  filterRows('');
 </script>
 {% endblock %}
 {% endblock %}

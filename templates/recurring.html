@@ -1,110 +1,108 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-    <div>
-        <h2 class="fw-bold mb-0">Recurring Transactions</h2>
-        <p class="text-secondary mb-0">Set rules to auto-create expenses or income.</p>
-    </div>
-    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-light">Back</a>
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <div>
+    <h2 class="text-3xl font-bold text-white">Recurring Transactions</h2>
+    <p class="text-sm text-text-muted">Set rules to auto-create expenses or income.</p>
+  </div>
+  <a href="{{ url_for('main.dashboard') }}" class="px-3 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5">Back</a>
 </div>
 
-<div class="card glass-card mb-3">
-    <div class="card-body">
-        <h5 class="card-title mb-3">New Recurring Rule</h5>
-        <form method="POST" class="row g-3">
-            <div class="col-md-4 input-floating">
-                <input name="name" class="form-control" placeholder=" ">
-                <label class="form-label">Name (Rent, Payroll, etc.)</label>
-            </div>
-            <div class="col-md-2 input-floating">
-                <select name="type" class="form-select">
-                    <option value="expense">Expense</option>
-                    <option value="income">Income</option>
-                </select>
-                <label class="form-label">Type</label>
-            </div>
-            <div class="col-md-2 input-floating">
-                <select name="category" class="form-select">
-                    {% for cat in categories %}
-                        <option value="{{ cat }}">{{ cat }}</option>
-                    {% endfor %}
-                </select>
-                <label class="form-label">Category</label>
-            </div>
-            <div class="col-md-2 input-floating">
-                <select name="frequency" class="form-select">
-                    <option value="monthly">Monthly</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="daily">Daily</option>
-                </select>
-                <label class="form-label">Frequency</label>
-            </div>
-            <div class="col-md-2 input-floating">
-                <input name="amount" class="form-control" placeholder="0.00">
-                <label class="form-label">Amount</label>
-            </div>
-            <div class="col-md-3 input-floating">
-                <select name="currency" class="form-select">
-                    {% for c in currencies %}
-                        <option value="{{ c }}" {% if c == base_currency %}selected{% endif %}>{{ c }}</option>
-                    {% endfor %}
-                </select>
-                <label class="form-label">Currency</label>
-            </div>
-            <div class="col-md-3 input-floating">
-                <input type="date" name="start_date" class="form-control" value="{{ today }}">
-                <label class="form-label">Start</label>
-            </div>
-            <div class="col-12 input-floating">
-                <input name="description" class="form-control" placeholder=" ">
-                <label class="form-label">Description (optional)</label>
-            </div>
-            <div class="col-12">
-                <button class="btn btn-primary">Save Rule</button>
-            </div>
-        </form>
+<div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-6 mb-4">
+  <h5 class="text-lg font-semibold text-white mb-3">New Recurring Rule</h5>
+  <form method="POST" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <label class="text-sm text-white font-semibold flex flex-col gap-1">
+      Name
+      <input name="name" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" placeholder="Rent, Payroll, etc.">
+    </label>
+    <label class="text-sm text-white font-semibold flex flex-col gap-1">
+      Type
+      <select name="type" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary">
+        <option value="expense">Expense</option>
+        <option value="income">Income</option>
+      </select>
+    </label>
+    <label class="text-sm text-white font-semibold flex flex-col gap-1">
+      Category
+      <select name="category" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary">
+        {% for cat in categories %}
+          <option value="{{ cat }}">{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="text-sm text-white font-semibold flex flex-col gap-1">
+      Frequency
+      <select name="frequency" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary">
+        <option value="monthly">Monthly</option>
+        <option value="weekly">Weekly</option>
+        <option value="daily">Daily</option>
+      </select>
+    </label>
+    <label class="text-sm text-white font-semibold flex flex-col gap-1">
+      Amount
+      <input name="amount" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" placeholder="0.00">
+    </label>
+    <label class="text-sm text-white font-semibold flex flex-col gap-1">
+      Currency
+      <select name="currency" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary">
+        {% for c in currencies %}
+          <option value="{{ c }}" {% if c == base_currency %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="text-sm text-white font-semibold flex flex-col gap-1">
+      Start
+      <input type="date" name="start_date" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" value="{{ today }}">
+    </label>
+    <label class="text-sm text-white font-semibold flex flex-col gap-1 md:col-span-2 lg:col-span-3">
+      Description (optional)
+      <input name="description" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" placeholder="Optional description">
+    </label>
+    <div class="md:col-span-2 lg:col-span-3 flex justify-end">
+      <button class="px-4 py-2 rounded-xl bg-primary text-white font-semibold shadow-button hover:brightness-110">Save Rule</button>
     </div>
+  </form>
 </div>
 
-<div class="card glass-card">
-    <div class="card-body">
-        <h5 class="card-title mb-3">Your Rules</h5>
-        {% if rules %}
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Category</th>
-                        <th>Amount</th>
-                        <th>Frequency</th>
-                        <th>Next Run</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in rules %}
-                    <tr>
-                        <td>{{ r.name }}</td>
-                        <td><span class="badge {% if r.type == 'expense' %}badge-expense{% else %}badge-income{% endif %}">{{ r.type.title() }}</span></td>
-                        <td>{{ r.category }}</td>
-                        <td>{{ r.currency or '' }}{{ '%.2f'|format(r.amount) }}</td>
-                        <td>{{ r.frequency.title() }}</td>
-                        <td>{{ r.next_run }}</td>
-                        <td>
-                            <form action="{{ url_for('main.delete_recurring', rule_id=r.id) }}" method="post" onsubmit="return confirm('Delete this rule?');">
-                                <button class="btn btn-sm btn-danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-            <p class="text-secondary mb-0">No recurring rules yet.</p>
-        {% endif %}
-    </div>
+<div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+  <div class="flex items-center justify-between mb-3">
+    <h5 class="text-lg font-semibold text-white">Your Rules</h5>
+  </div>
+  {% if rules %}
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <thead class="text-text-muted border-b border-white/5">
+        <tr>
+          <th class="py-2 text-left">Name</th>
+          <th class="py-2 text-left">Type</th>
+          <th class="py-2 text-left">Category</th>
+          <th class="py-2 text-left">Amount</th>
+          <th class="py-2 text-left">Frequency</th>
+          <th class="py-2 text-left">Next Run</th>
+          <th class="py-2 text-right"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5">
+        {% for r in rules %}
+        <tr class="hover:bg-slate-900/60">
+          <td class="py-3">{{ r.name }}</td>
+          <td class="py-3"><span class="px-2 py-1 rounded-full text-xs {% if r.type == 'expense' %}bg-danger/20 text-danger{% else %}bg-success/20 text-success{% endif %}">{{ r.type.title() }}</span></td>
+          <td class="py-3">{{ r.category }}</td>
+          <td class="py-3">{{ r.currency or '' }}{{ '%.2f'|format(r.amount) }}</td>
+          <td class="py-3">{{ r.frequency.title() }}</td>
+          <td class="py-3">{{ r.next_run }}</td>
+          <td class="py-3 text-right">
+            <form action="{{ url_for('main.delete_recurring', rule_id=r.id) }}" method="post" onsubmit="return confirm('Delete this rule?');">
+              <button class="px-3 py-1 rounded-lg bg-danger text-white text-xs hover:brightness-110">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-sm text-text-muted">No recurring rules yet.</p>
+  {% endif %}
 </div>
 {% endblock %}

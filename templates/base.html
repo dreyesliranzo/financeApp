@@ -1,101 +1,122 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title or "Pulse Finance" }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    {% block head %}{% endblock %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ title or "Pulse Finance" }}</title>
+  <script>
+    tailwind_config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#4f8dff', dark: '#3f6ee8' },
+            accent: '#a78bfa',
+            success: '#34d399',
+            danger: '#ef4444',
+            warning: '#fbbf24',
+            info: '#38bdf8',
+            bg: '#050816',
+            'bg-elevated': '#0f1728',
+            border: 'rgba(255,255,255,0.08)',
+            'text-primary': '#e8edf5',
+            'text-muted': '#9bacc7',
+          },
+          boxShadow: {
+            card: '0 18px 45px rgba(0,0,0,0.55)',
+            button: '0 0 25px rgba(79,141,255,0.55)',
+          },
+          borderRadius: {
+            xl2: '1.25rem',
+          },
+        },
+      },
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = tailwind_config;
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif; }
+  </style>
+  {% block head %}{% endblock %}
 </head>
-<body class="bg-surface">
-<div class="grain"></div>
+<body class="bg-[color:var(--tw-color-bg,#050816)] text-[color:var(--tw-color-text-primary,#e8edf5)] min-h-screen">
+  <div class="fixed inset-0 pointer-events-none bg-gradient-to-br from-primary/10 via-transparent to-accent/5"></div>
+  <div class="fixed inset-0 pointer-events-none mix-blend-soft-light opacity-50"
+       style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221600%22 height=%22900%22 viewBox=%220 0 1600 900%22%3E%3Cfilter id=%22n%22 x=%220%22 y=%220%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%221600%22 height=%22900%22 filter=%22url(%23n)%22 opacity=%220.05%22/%3E%3C/svg%3E');"></div>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-glass">
-    <div class="container-fluid app-shell">
-        <a class="navbar-brand fw-bold" href="{{ url_for('main.dashboard') }}">Pulse</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            {% if current_user.is_authenticated %}
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.add_transaction' %}active{% endif %}" href="{{ url_for('main.add_transaction') }}">Add Transaction</a></li>
-                <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.transactions' %}active{% endif %}" href="{{ url_for('main.transactions') }}">Transactions</a></li>
-                <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('main.budgets') %}active{% endif %}" href="{{ url_for('main.budgets') }}">Budgets</a></li>
-                <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.recurring' %}active{% endif %}" href="{{ url_for('main.recurring') }}">Recurring</a></li>
-                <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.reports' %}active{% endif %}" href="{{ url_for('main.reports') }}">Reports</a></li>
-                <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.savings' %}active{% endif %}" href="{{ url_for('main.savings') }}">Savings</a></li>
-            </ul>
-            <div class="d-flex align-items-center gap-3">
-                <span class="text-light small">Hi, {{ current_user.username }}</span>
-                <button class="btn btn-outline-light btn-sm" id="themeToggle" type="button">Theme</button>
-                <a class="btn btn-outline-light btn-sm" href="{{ url_for('main.settings') }}">Settings</a>
-                <a class="btn btn-danger btn-sm" href="{{ url_for('auth.logout') }}">Logout</a>
-            </div>
-            {% endif %}
+  <header class="sticky top-0 z-20 backdrop-blur bg-black/40 border-b border-white/5">
+    <nav class="max-w-7xl mx-auto px-4 lg:px-6 flex items-center justify-between h-16">
+      <div class="flex items-center gap-3">
+        <a href="{{ url_for('main.dashboard') }}" class="text-lg font-extrabold tracking-tight">Pulse</a>
+        {% if current_user.is_authenticated %}
+        <div class="hidden md:flex items-center gap-2 text-sm text-text-muted">
+          <a class="px-3 py-2 rounded-xl hover:bg-white/5 {% if request.endpoint == 'main.dashboard' %}text-white bg-white/5{% endif %}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+          <a class="px-3 py-2 rounded-xl hover:bg-white/5 {% if request.endpoint == 'main.add_transaction' %}text-white bg-white/5{% endif %}" href="{{ url_for('main.add_transaction') }}">Add</a>
+          <a class="px-3 py-2 rounded-xl hover:bg-white/5 {% if request.endpoint == 'main.transactions' %}text-white bg-white/5{% endif %}" href="{{ url_for('main.transactions') }}">Transactions</a>
+          <a class="px-3 py-2 rounded-xl hover:bg-white/5 {% if request.endpoint and request.endpoint.startswith('main.budgets') %}text-white bg-white/5{% endif %}" href="{{ url_for('main.budgets') }}">Budgets</a>
+          <a class="px-3 py-2 rounded-xl hover:bg-white/5 {% if request.endpoint == 'main.recurring' %}text-white bg-white/5{% endif %}" href="{{ url_for('main.recurring') }}">Recurring</a>
+          <a class="px-3 py-2 rounded-xl hover:bg-white/5 {% if request.endpoint == 'main.reports' %}text-white bg-white/5{% endif %}" href="{{ url_for('main.reports') }}">Reports</a>
+          <a class="px-3 py-2 rounded-xl hover:bg-white/5 {% if request.endpoint == 'main.savings' %}text-white bg-white/5{% endif %}" href="{{ url_for('main.savings') }}">Savings</a>
         </div>
-    </div>
-</nav>
-
-<main class="app-shell my-4">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="toast-notice alert alert-{{ category }} shadow-sm auto-dismiss">{{ message }}</div>
-            {% endfor %}
         {% endif %}
+      </div>
+      {% if current_user.is_authenticated %}
+      <div class="flex items-center gap-2">
+        <span class="hidden sm:inline text-sm text-text-muted">Hi, {{ current_user.username }}</span>
+        <button id="themeToggle" class="px-3 py-2 rounded-xl border border-white/10 text-sm hover:bg-white/10">Theme</button>
+        <a class="px-3 py-2 rounded-xl border border-white/10 text-sm hover:bg-white/10" href="{{ url_for('main.settings') }}">Settings</a>
+        <a class="px-3 py-2 rounded-xl bg-danger text-white text-sm hover:brightness-110 shadow-button" href="{{ url_for('auth.logout') }}">Logout</a>
+      </div>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 lg:px-6 py-6 relative z-10">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="space-y-2 mb-4">
+          {% for category, message in messages %}
+            <div class="rounded-xl px-4 py-3 border border-white/10 bg-slate-900/70 text-sm">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
     {% endwith %}
     {% block content %}{% endblock %}
-</main>
+  </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script>
-    (function() {
-        const btn = document.getElementById('themeToggle');
-        if (!btn) return;
-        const themes = ['dark', 'light'];
-        const apply = (mode) => {
-            document.documentElement.dataset.theme = mode;
-            localStorage.setItem('theme', mode);
-        };
-        const saved = localStorage.getItem('theme') || 'dark';
-        apply(saved);
-        btn.addEventListener('click', () => {
-            const current = localStorage.getItem('theme') || 'dark';
-            const next = current === 'dark' ? 'light' : 'dark';
-            apply(next);
-        });
-    })();
-
-    (function() {
-        const alerts = document.querySelectorAll('.auto-dismiss');
-        alerts.forEach(a => {
-            setTimeout(() => {
-                a.classList.add('fade');
-                setTimeout(() => a.remove(), 300);
-            }, 4000);
-        });
-    })();
-</script>
-{% block scripts %}{% endblock %}
-
-<footer class="text-center text-secondary small py-4">
+  <footer class="max-w-7xl mx-auto px-4 lg:px-6 py-6 text-center text-xs text-text-muted border-t border-white/5">
     &copy; {{ now().year if now else '' }} Pulse Finance · Diego Reyes. All rights reserved.
-</footer>
-<div id="toast-container"></div>
-{% if current_user.is_authenticated %}
-<button class="fab" onclick="window.location.href='{{ url_for('main.add_transaction') }}'">+</button>
-<div class="mobile-action-bar d-md-none d-flex">
-    <a href="{{ url_for('main.add_transaction') }}">Add</a>
-    <a href="{{ url_for('main.budgets') }}">Budgets</a>
-    <a href="{{ url_for('main.reports') }}">Reports</a>
-</div>
-{% endif %}
+  </footer>
+
+  <div id="toast-container"></div>
+  {% if current_user.is_authenticated %}
+  <button class="fixed right-5 bottom-5 w-14 h-14 rounded-full bg-primary text-white shadow-button hover:brightness-110"
+          onclick="window.location.href='{{ url_for('main.add_transaction') }}'">+</button>
+  {% endif %}
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    (() => {
+      const btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      const apply = (mode) => {
+        document.documentElement.dataset.theme = mode;
+        localStorage.setItem('theme', mode);
+      };
+      const saved = localStorage.getItem('theme') || 'dark';
+      apply(saved);
+      btn.addEventListener('click', () => {
+        const next = (localStorage.getItem('theme') || 'dark') === 'dark' ? 'light' : 'dark';
+        apply(next);
+      });
+    })();
+  </script>
+  {% block scripts %}{% endblock %}
 </body>
 </html>

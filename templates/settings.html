@@ -1,163 +1,166 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row g-3">
-    <div class="col-lg-6">
-        <div class="card glass-card mb-3">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Password</h5>
-                <form method="POST">
-                    <input type="hidden" name="action" value="password">
-                    <div class="mb-3">
-                        <label class="form-label">Current Password</label>
-                        <input type="password" name="current_password" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">New Password</label>
-                        <input type="password" name="new_password" class="form-control" required>
-                    </div>
-                    <button class="btn btn-primary w-100">Update Password</button>
-                </form>
-            </div>
-        </div>
-        <div class="card glass-card mb-3">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Base Currency</h5>
-                <form method="POST" class="d-flex gap-2 align-items-end">
-                    <input type="hidden" name="action" value="base_currency">
-                    <div class="flex-grow-1">
-                        <label class="form-label">Choose base</label>
-                        <select name="base_currency" class="form-select">
-                            {% for c in currencies %}
-                                <option value="{{ c }}" {% if c == base_currency %}selected{% endif %}>{{ c }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button class="btn btn-outline-light mt-auto">Save</button>
-                </form>
-            </div>
-        </div>
-        <div class="card glass-card">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Conversion Rates</h5>
-                <form method="POST" class="row g-2 align-items-end">
-                    <input type="hidden" name="action" value="add_rate">
-                    <div class="col-md-4">
-                        <label class="form-label">Currency</label>
-                        <input name="rate_code" class="form-control" placeholder="e.g., EUR">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Rate to {{ base_currency }}</label>
-                        <input name="rate_value" class="form-control" placeholder="e.g., 1.10" type="number" step="0.0001">
-                    </div>
-                    <div class="col-md-4">
-                        <button class="btn btn-primary w-100 mt-4">Save Rate</button>
-                    </div>
-                </form>
-                {% if rates %}
-                    <ul class="list-group list-group-flush mt-3">
-                        {% for r in rates %}
-                        <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
-                            <span>{{ r.code }} → {{ base_currency }}</span>
-                            <span class="fw-bold">{{ r.rate_to_base }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-secondary mb-0 mt-3">No rates set. Base currency assumes 1:1.</p>
-                {% endif %}
-            </div>
-        </div>
-        <div class="card glass-card">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Alerts</h5>
-                <form method="POST" class="row g-2 align-items-end">
-                    <input type="hidden" name="action" value="alerts">
-                    <div class="col-md-6">
-                        <label class="form-label">Alert on transactions over</label>
-                        <input type="number" step="0.01" name="alert_large" class="form-control" value="{{ settings.alert_large or '' }}" placeholder="e.g., 500">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Alert when budgets exceed %</label>
-                        <input type="number" step="1" name="alert_budget_pct" class="form-control" value="{{ settings.alert_budget_pct or '' }}" placeholder="e.g., 90">
-                    </div>
-                    <div class="col-12">
-                        <button class="btn btn-primary w-100 mt-2">Save Alerts</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+<div class="mb-6">
+  <h2 class="text-3xl font-bold text-white">Settings</h2>
+  <p class="text-sm text-text-muted">Manage password, base currency, conversion rates, categories, alerts, and rules.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="space-y-4">
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+      <h5 class="text-lg font-semibold text-white mb-3">Password</h5>
+      <form method="POST" class="space-y-3">
+        <input type="hidden" name="action" value="password">
+        <label class="text-sm text-white font-semibold flex flex-col gap-1">
+          Current Password
+          <input type="password" name="current_password" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" required>
+        </label>
+        <label class="text-sm text-white font-semibold flex flex-col gap-1">
+          New Password
+          <input type="password" name="new_password" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" required>
+        </label>
+        <button class="w-full px-4 py-2 rounded-xl bg-primary text-white font-semibold shadow-button hover:brightness-110">Update Password</button>
+      </form>
     </div>
-    <div class="col-lg-6">
-        <div class="card glass-card mb-3">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Categories</h5>
-                <form method="POST" class="row g-2">
-                    <input type="hidden" name="action" value="add_category">
-                    <div class="col-md-7">
-                        <input name="category_name" class="form-control" placeholder="Add new category">
-                    </div>
-                    <div class="col-md-3">
-                        <input name="category_color" type="color" class="form-control form-control-color" title="Pick color">
-                    </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-primary w-100">Add</button>
-                    </div>
-                </form>
-                <div class="mt-3 d-flex flex-wrap gap-2">
-                    {% for cat in categories %}
-                        <span class="badge bg-secondary" style="background-color: {{ cat[1] or '#6c757d' }};">{{ cat[0] }}</span>
-                    {% endfor %}
-                </div>
-            </div>
+
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+      <h5 class="text-lg font-semibold text-white mb-3">Base Currency</h5>
+      <form method="POST" class="flex flex-col sm:flex-row gap-3 items-end">
+        <input type="hidden" name="action" value="base_currency">
+        <div class="flex-1">
+          <label class="text-sm text-white font-semibold flex flex-col gap-1">
+            Choose base
+            <select name="base_currency" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary">
+              {% for c in currencies %}
+                  <option value="{{ c }}" {% if c == base_currency %}selected{% endif %}>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </label>
         </div>
-        {% if message %}
-        <div class="alert alert-success">{{ message }}</div>
-        {% endif %}
+        <button class="px-4 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5">Save</button>
+      </form>
     </div>
-    <div class="col-lg-6">
-        <div class="card glass-card mb-3">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Category Rules</h5>
-                <form method="POST" class="row g-2 align-items-end">
-                    <input type="hidden" name="action" value="add_rule">
-                    <div class="col-md-6">
-                        <label class="form-label">Keyword</label>
-                        <input name="rule_keyword" class="form-control" placeholder="e.g., uber, starbucks">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Category</label>
-                        <select name="rule_category" class="form-select">
-                            <option value="">Select</option>
-                            {% for cat in categories %}
-                                <option value="{{ cat[0] }}">{{ cat[0] }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-primary w-100 mt-4">Save</button>
-                    </div>
-                </form>
-                {% if rules %}
-                    <div class="list-group list-group-flush mt-3">
-                        {% for r in rules %}
-                        <div class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="fw-semibold">{{ r.keyword }}</div>
-                                <small class="text-secondary">→ {{ r.category }}</small>
-                            </div>
-                            <form method="POST" style="margin:0;">
-                                <input type="hidden" name="action" value="delete_rule">
-                                <input type="hidden" name="rule_id" value="{{ r.id }}">
-                                <button class="btn btn-sm btn-outline-light">Delete</button>
-                            </form>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-secondary mb-0 mt-3">No rules yet. Add a keyword to auto-assign categories.</p>
-                {% endif %}
-            </div>
+
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+      <h5 class="text-lg font-semibold text-white mb-3">Conversion Rates</h5>
+      <form method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+        <input type="hidden" name="action" value="add_rate">
+        <label class="text-sm text-white font-semibold flex flex-col gap-1">
+          Currency
+          <input name="rate_code" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" placeholder="e.g., EUR">
+        </label>
+        <label class="text-sm text-white font-semibold flex flex-col gap-1">
+          Rate to {{ base_currency }}
+          <input name="rate_value" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" placeholder="e.g., 1.10" type="number" step="0.0001">
+        </label>
+        <button class="px-4 py-2 rounded-xl bg-primary text-white font-semibold shadow-button hover:brightness-110">Save Rate</button>
+      </form>
+      {% if rates %}
+        <ul class="mt-3 divide-y divide-white/5">
+          {% for r in rates %}
+          <li class="py-2 flex items-center justify-between">
+            <span class="text-sm text-white">{{ r.code }} → {{ base_currency }}</span>
+            <span class="text-sm font-semibold text-white">{{ r.rate_to_base }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-sm text-text-muted mt-3 mb-0">No rates set. Base currency assumes 1:1.</p>
+      {% endif %}
+    </div>
+
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+      <h5 class="text-lg font-semibold text-white mb-3">Alerts</h5>
+      <form method="POST" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input type="hidden" name="action" value="alerts">
+        <label class="text-sm text-white font-semibold flex flex-col gap-1">
+          Alert on transactions over
+          <input type="number" step="0.01" name="alert_large" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" value="{{ settings.alert_large or '' }}" placeholder="e.g., 500">
+        </label>
+        <label class="text-sm text-white font-semibold flex flex-col gap-1">
+          Alert when budgets exceed %
+          <input type="number" step="1" name="alert_budget_pct" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" value="{{ settings.alert_budget_pct or '' }}" placeholder="e.g., 90">
+        </label>
+        <div class="sm:col-span-2 flex justify-end">
+          <button class="px-4 py-2 rounded-xl bg-primary text-white font-semibold shadow-button hover:brightness-110">Save Alerts</button>
         </div>
+      </form>
     </div>
+  </div>
+
+  <div class="space-y-4">
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+      <h5 class="text-lg font-semibold text-white mb-3">Categories</h5>
+      <form method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+        <input type="hidden" name="action" value="add_category">
+        <div class="sm:col-span-2">
+          <label class="text-sm text-white font-semibold flex flex-col gap-1">
+            Category Name
+            <input name="category_name" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" placeholder="Add new category">
+          </label>
+        </div>
+        <div>
+          <label class="text-sm text-white font-semibold flex flex-col gap-1">
+            Color
+            <input name="category_color" type="color" class="w-full h-[42px] rounded-xl bg-slate-900/60 border border-white/10">
+          </label>
+        </div>
+        <div class="sm:col-span-3 flex justify-end">
+          <button class="px-4 py-2 rounded-xl bg-primary text-white font-semibold shadow-button hover:brightness-110">Add</button>
+        </div>
+      </form>
+      <div class="mt-3 flex flex-wrap gap-2">
+        {% for cat in categories %}
+            <span class="px-3 py-1 rounded-full text-xs text-white" style="background-color: {{ cat[1] or '#6c757d' }};">{{ cat[0] }}</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+      <h5 class="text-lg font-semibold text-white mb-3">Category Rules</h5>
+      <form method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+        <input type="hidden" name="action" value="add_rule">
+        <label class="text-sm text-white font-semibold flex flex-col gap-1">
+          Keyword
+          <input name="rule_keyword" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" placeholder="e.g., uber, starbucks">
+        </label>
+        <label class="text-sm text-white font-semibold flex flex-col gap-1">
+          Category
+          <select name="rule_category" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary">
+            <option value="">Select</option>
+            {% for cat in categories %}
+                <option value="{{ cat[0] }}">{{ cat[0] }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <div class="flex justify-end">
+          <button class="px-4 py-2 rounded-xl bg-primary text-white font-semibold shadow-button hover:brightness-110">Save</button>
+        </div>
+      </form>
+      {% if rules %}
+        <div class="mt-3 divide-y divide-white/5">
+          {% for r in rules %}
+          <div class="py-2 flex items-center justify-between">
+            <div>
+              <div class="text-sm font-semibold text-white">{{ r.keyword }}</div>
+              <div class="text-xs text-text-muted">→ {{ r.category }}</div>
+            </div>
+            <form method="POST" style="margin:0;">
+              <input type="hidden" name="action" value="delete_rule">
+              <input type="hidden" name="rule_id" value="{{ r.id }}">
+              <button class="px-3 py-1 rounded-lg border border-white/10 text-xs hover:bg-white/5">Delete</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm text-text-muted mt-3 mb-0">No rules yet. Add a keyword to auto-assign categories.</p>
+      {% endif %}
+    </div>
+
+    {% if message %}
+    <div class="rounded-xl border border-white/10 bg-emerald-500/15 text-emerald-200 px-4 py-3 text-sm">{{ message }}</div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

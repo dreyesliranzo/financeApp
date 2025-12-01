@@ -1,109 +1,103 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-    <div>
-        <h2 class="fw-bold mb-0">Budgets</h2>
-        <p class="text-secondary mb-0">Set limits and track your progress.</p>
-    </div>
-    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-light">Back to Dashboard</a>
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <div>
+    <h2 class="text-3xl font-bold text-white">Budgets</h2>
+    <p class="text-sm text-text-muted">Set limits and track your progress.</p>
+  </div>
+  <a href="{{ url_for('main.dashboard') }}" class="px-3 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5">Back to Dashboard</a>
 </div>
 
-<div class="row g-3">
-    <div class="col-lg-5">
-        <div class="card glass-card">
-            <div class="card-body">
-                <h5 class="card-title mb-3">New Budget</h5>
-                <form method="POST">
-                    <div class="row g-3">
-                        <div class="col-md-6 input-floating">
-                            <input type="date" name="period_start" class="form-control" required>
-                            <label class="form-label">Period Start</label>
-                        </div>
-                        <div class="col-md-6 input-floating">
-                            <input type="date" name="period_end" class="form-control" required>
-                            <label class="form-label">Period End</label>
-                        </div>
-                        <div class="col-12 input-floating">
-                            <select name="category" class="form-select">
-                                <option value="">All categories</option>
-                                {% for cat in categories %}
-                                    <option value="{{ cat }}">{{ cat }}</option>
-                                {% endfor %}
-                            </select>
-                            <label class="form-label">Category (optional)</label>
-                        </div>
-                        <div class="col-12 input-floating">
-                            <input type="number" step="0.01" min="0" name="amount" class="form-control" required>
-                            <label class="form-label">Amount</label>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary w-100 mt-3">Save Budget</button>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-6">
+    <h5 class="text-lg font-semibold text-white mb-4">New Budget</h5>
+    <form method="POST" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <label class="text-sm text-white font-semibold flex flex-col gap-1">
+          Period Start
+          <input type="date" name="period_start" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" required>
+        </label>
+        <label class="text-sm text-white font-semibold flex flex-col gap-1">
+          Period End
+          <input type="date" name="period_end" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" required>
+        </label>
+      </div>
+      <label class="text-sm text-white font-semibold flex flex-col gap-1">
+        Category (optional)
+        <select name="category" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary">
+          <option value="">All categories</option>
+          {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="text-sm text-white font-semibold flex flex-col gap-1">
+        Amount
+        <input type="number" step="0.01" min="0" name="amount" class="w-full rounded-xl bg-slate-900/60 border border-white/10 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" required>
+      </label>
+      <button class="w-full px-4 py-2 rounded-xl bg-primary text-white font-semibold shadow-button hover:brightness-110">Save Budget</button>
+    </form>
+  </div>
+
+  <div class="space-y-4">
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+      <div class="flex items-center justify-between mb-2">
+        <h5 class="text-lg font-semibold text-white mb-0">Your Budgets</h5>
+        <small class="text-text-muted">Current period progress below.</small>
+      </div>
+      {% if budgets %}
+        <div class="divide-y divide-white/5">
+          {% for budget in budgets %}
+          <div class="py-3 flex items-center justify-between">
+            <div>
+              <div class="text-sm font-semibold text-white">{{ budget.category or "All categories" }}</div>
+              <div class="text-xs text-text-muted">{{ budget.period_start }} → {{ budget.period_end }}</div>
+            </div>
+            <div class="text-right space-y-2">
+              <div class="text-sm font-bold">${{ '%.2f'|format(budget.amount) }}</div>
+              <div class="flex gap-2 justify-end">
+                <a href="{{ url_for('main.edit_budget', budget_id=budget.id) }}" class="px-3 py-1 rounded-lg border border-white/10 text-xs hover:bg-white/5">Edit</a>
+                <form action="{{ url_for('main.delete_budget', budget_id=budget.id) }}" method="post" onsubmit="return confirm('Delete this budget?');">
+                  <button class="px-3 py-1 rounded-lg bg-danger text-white text-xs hover:brightness-110">Delete</button>
                 </form>
+              </div>
             </div>
+          </div>
+          {% endfor %}
         </div>
+      {% else %}
+        <p class="text-sm text-text-muted mb-0">No budgets yet.</p>
+      {% endif %}
     </div>
-    <div class="col-lg-7">
-        <div class="card glass-card mb-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="card-title mb-0">Your Budgets</h5>
-                    <small class="text-secondary">Current period progress below.</small>
-                </div>
-                {% if budgets %}
-                    <div class="list-group list-group-flush">
-                        {% for budget in budgets %}
-                            <div class="list-group-item bg-transparent text-light border-secondary">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="fw-semibold">{{ budget.category or "All categories" }}</div>
-                                        <small class="text-secondary">{{ budget.period_start }} → {{ budget.period_end }}</small>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="fw-bold">${{ '%.2f'|format(budget.amount) }}</div>
-                                        <div class="d-flex gap-2 mt-1">
-                                            <a href="{{ url_for('main.edit_budget', budget_id=budget.id) }}" class="btn btn-sm btn-outline-light">Edit</a>
-                                            <form action="{{ url_for('main.delete_budget', budget_id=budget.id) }}" method="post" onsubmit="return confirm('Delete this budget?');">
-                                                <button class="btn btn-sm btn-danger">Delete</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-secondary mb-0">No budgets yet.</p>
-                {% endif %}
+
+    <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-5">
+      <h6 class="text-base font-semibold text-white mb-3">Current Progress</h6>
+      {% if progress %}
+        <div class="space-y-3">
+          {% for item in progress %}
+          {% set bar_class = 'from-emerald-400 to-sky-400' %}
+          {% if item.percent > 100 %}{% set bar_class = 'from-red-400 to-rose-500' %}{% elif item.percent > 85 %}{% set bar_class = 'from-amber-300 to-orange-400' %}{% endif %}
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm font-semibold text-white">{{ item.budget.category or "All categories" }}</div>
+                <div class="text-xs text-text-muted">{{ item.budget.period_start }} → {{ item.budget.period_end }}</div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-bold {% if item.percent > 100 %}text-danger{% elif item.percent > 85 %}text-warning{% else %}text-success{% endif %}">{{ '%.0f'|format(item.percent) }}%</div>
+                <div class="text-xs text-text-muted">${{ '%.2f'|format(item.spent) }} / ${{ '%.2f'|format(item.budget.amount) }}</div>
+              </div>
             </div>
-        </div>
-        <div class="card glass-card">
-            <div class="card-body">
-                <h6 class="card-title mb-3">Current Progress</h6>
-                {% if progress %}
-                    {% for item in progress %}
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <div class="fw-semibold">{{ item.budget.category or "All categories" }}</div>
-                                <small class="text-secondary">{{ item.budget.period_start }} → {{ item.budget.period_end }}</small>
-                            </div>
-                            <div class="text-end">
-                                {% set bar_class = 'safe' %}
-                                {% if item.percent > 100 %}{% set bar_class = 'over' %}{% elif item.percent > 85 %}{% set bar_class = 'warn' %}{% endif %}
-                                <div class="fw-bold {% if item.percent > 100 %}text-danger{% elif item.percent > 85 %}text-warning{% else %}text-success{% endif %}">{{ '%.0f'|format(item.percent) }}%</div>
-                                <small class="text-secondary">${{ '%.2f'|format(item.spent) }} / ${{ '%.2f'|format(item.budget.amount) }}</small>
-                            </div>
-                        </div>
-                        <div class="progress mt-2">
-                            <div class="progress-bar {{ bar_class }}" style="width: {{ item.percent if item.percent < 100 else 100 }}%"></div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-secondary mb-0">No active budgets for today.</p>
-                {% endif %}
+            <div class="w-full h-2 rounded-full bg-white/10">
+              <div class="h-2 rounded-full bg-gradient-to-r {{ bar_class }}" style="width: {{ item.percent if item.percent < 100 else 100 }}%"></div>
             </div>
+          </div>
+          {% endfor %}
         </div>
+      {% else %}
+        <p class="text-sm text-text-muted mb-0">No active budgets for today.</p>
+      {% endif %}
     </div>
+  </div>
 </div>
 {% endblock %}
