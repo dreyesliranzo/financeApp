@@ -75,6 +75,17 @@
       </div>
       {% endif %}
     </nav>
+    {% if current_user.is_authenticated %}
+    <div class="md:hidden max-w-screen-2xl mx-auto px-4 lg:px-8 py-2 flex gap-2 overflow-x-auto text-sm text-text-muted border-t border-white/5">
+      <a class="px-3 py-2 rounded-xl border border-transparent hover:border-white/10 hover:bg-white/5 transition {% if request.endpoint == 'main.dashboard' %}text-white bg-white/10 border-white/10{% endif %}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+      <a class="px-3 py-2 rounded-xl border border-transparent hover:border-white/10 hover:bg-white/5 transition {% if request.endpoint == 'main.add_transaction' %}text-white bg-white/10 border-white/10{% endif %}" href="{{ url_for('main.add_transaction') }}">Add</a>
+      <a class="px-3 py-2 rounded-xl border border-transparent hover:border-white/10 hover:bg-white/5 transition {% if request.endpoint == 'main.transactions' %}text-white bg-white/10 border-white/10{% endif %}" href="{{ url_for('main.transactions') }}">Transactions</a>
+      <a class="px-3 py-2 rounded-xl border border-transparent hover:border-white/10 hover:bg-white/5 transition {% if request.endpoint and request.endpoint.startswith('main.budgets') %}text-white bg-white/10 border-white/10{% endif %}" href="{{ url_for('main.budgets') }}">Budgets</a>
+      <a class="px-3 py-2 rounded-xl border border-transparent hover:border-white/10 hover:bg-white/5 transition {% if request.endpoint == 'main.recurring' %}text-white bg-white/10 border-white/10{% endif %}" href="{{ url_for('main.recurring') }}">Recurring</a>
+      <a class="px-3 py-2 rounded-xl border border-transparent hover:border-white/10 hover:bg-white/5 transition {% if request.endpoint == 'main.reports' %}text-white bg-white/10 border-white/10{% endif %}" href="{{ url_for('main.reports') }}">Reports</a>
+      <a class="px-3 py-2 rounded-xl border border-transparent hover:border-white/10 hover:bg-white/5 transition {% if request.endpoint == 'main.savings' %}text-white bg-white/10 border-white/10{% endif %}" href="{{ url_for('main.savings') }}">Savings</a>
+    </div>
+    {% endif %}
   </header>
 
   <main class="max-w-screen-2xl mx-auto px-4 lg:px-8 py-6 space-y-6 relative z-10">

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
   <div>
     <h2 class="text-3xl font-bold text-white">Recurring Transactions</h2>
     <p class="text-sm text-text-muted">Set rules to auto-create expenses or income.</p>
   </div>
-  <a href="{{ url_for('main.dashboard') }}" class="px-3 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5">Back</a>
+  <a href="{{ url_for('main.dashboard') }}" class="px-3 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5 text-center w-full sm:w-auto">Back</a>
 </div>
 
 <div class="rounded-2xl border border-white/5 bg-slate-900/70 shadow-card p-6 mb-4">

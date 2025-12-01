@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="flex flex-wrap items-center justify-between gap-3 mb-2">
-  <div>
-    <h2 class="text-4xl font-bold text-white">Dashboard</h2>
+<div class="flex flex-wrap items-start md:items-center justify-between gap-3 mb-2">
+  <div class="space-y-1">
+    <h2 class="text-4xl font-bold text-white leading-tight">Dashboard</h2>
     <p class="text-sm text-text-muted">Financial overview, spending, and upcoming items.</p>
   </div>
-  <div class="flex items-center gap-2">
-    <a href="{{ url_for('main.add_transaction') }}" class="px-4 py-2 rounded-xl bg-primary text-white font-semibold shadow-button hover:brightness-110 active:scale-[0.97] transition">+ Add Transaction</a>
-    <a href="{{ url_for('main.budgets') }}" class="px-4 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5 active:scale-[0.97] transition">Manage Budgets</a>
+  <div class="flex flex-col sm:flex-row w-full sm:w-auto items-stretch sm:items-center gap-2">
+    <a href="{{ url_for('main.add_transaction') }}" class="px-4 py-2 rounded-xl bg-primary text-center text-white font-semibold shadow-button hover:brightness-110 active:scale-[0.97] transition w-full sm:w-auto">+ Add Transaction</a>
+    <a href="{{ url_for('main.budgets') }}" class="px-4 py-2 rounded-xl border border-white/10 text-center text-white hover:bg-white/5 active:scale-[0.97] transition w-full sm:w-auto">Manage Budgets</a>
   </div>
 </div>
 
@@ -25,7 +25,7 @@
     ('Runway', runway_days if runway_days else 0, 'text-success' if runway_days and runway_days>=30 else 'text-danger' if runway_days else 'text-success', 'Forecast'),
     ('Remaining Balance', remaining, 'text-success' if remaining>=0 else 'text-danger', 'Period')
   ] %}
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3 sm:gap-4">
     {% for label, value, cls, chip in cards %}
     <div class="rounded-2xl border border-white/5 bg-slate-900/70 p-5 shadow-card hover:-translate-y-0.5 transition">
       <div class="flex items-center justify-between mb-2">
