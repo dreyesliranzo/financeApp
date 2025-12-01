@@ -165,3 +165,17 @@ class Attachment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     transaction = db.relationship("Transaction", backref=db.backref("attachments", lazy=True, cascade="all, delete-orphan"))
+
+
+class CategoryRule(db.Model):
+    __tablename__ = "category_rules"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    keyword = db.Column(db.String(120), nullable=False)
+    category = db.Column(db.String(80), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (db.UniqueConstraint("user_id", "keyword", name="uq_rule_user_keyword"),)
+
+    user = db.relationship("User", backref=db.backref("category_rules", lazy=True, cascade="all, delete-orphan"))

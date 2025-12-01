@@ -145,7 +145,7 @@ def create_app(test_config=None):
         existing_tables = inspector.get_table_names()
         if "savings_goals" not in existing_tables:
             db.create_all()
-        for tbl in ["categories", "currency_rates", "user_settings", "recurring_rules", "attachments"]:
+        for tbl in ["categories", "currency_rates", "user_settings", "recurring_rules", "attachments", "category_rules"]:
             if tbl not in existing_tables:
                 db.create_all()
 

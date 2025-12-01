@@ -27,6 +27,7 @@ from finance_app.models import (
     UserSettings,
     RecurringRule,
     Attachment,
+    CategoryRule,
 )
 from finance_app.services import (
     DEFAULT_CATEGORIES,
@@ -71,6 +72,23 @@ def _save_attachment(transaction_id: int):
     attach = Attachment(transaction_id=transaction_id, filename=filename, original_name=file.filename)
     db.session.add(attach)
     db.session.commit()
+
+
+def _apply_category_rule(user_id: int, description: str, current_category: str) -> str:
+    """Return category based on rules if description matches; otherwise existing category."""
+    if not description:
+        return current_category
+    if current_category and current_category != "Other":
+        return current_category
+    desc_lower = description.lower()
+    rules = CategoryRule.query.filter_by(user_id=user_id).all()
+    best = None
+    for rule in rules:
+        if rule.keyword.lower() in desc_lower:
+            # prefer longest keyword match
+            if not best or len(rule.keyword) > len(best.keyword):
+                best = rule
+    return best.category if best else current_category
 
 
 def _maybe_send_alerts(tx: Transaction, settings: UserSettings):
@@ -325,8 +343,9 @@ def add_transaction():
     if request.method == "POST":
         t_date = _parse_date(request.form.get("date")) or date.today()
         t_type = request.form.get("type", "expense")
-        category = request.form.get("category", "").strip() or "Other"
+        category_input = request.form.get("category", "").strip()
         description = request.form.get("description", "").strip()
+        category = _apply_category_rule(current_user.id, description, category_input or "Other")
         amount_raw = request.form.get("amount", "0").replace(",", "")
         currency = request.form.get("currency") or base_currency
         try:
@@ -682,7 +701,7 @@ def import_transactions():
             try:
                 t_date = _parse_date(row.get("date")) or date.today()
                 t_type = row.get("type", "expense").lower()
-                category = row.get("category", "Other")
+                raw_cat = row.get("category", "") or "Other"
                 amount = float(row.get("amount", 0))
                 description = row.get("description", "")
                 currency = row.get("currency") or user_base_currency(current_user.id)
@@ -690,6 +709,7 @@ def import_transactions():
                 continue
             if amount <= 0 or t_type not in ["expense", "income"]:
                 continue
+            category = _apply_category_rule(current_user.id, description, raw_cat)
             tx = Transaction(
                 user_id=current_user.id,
                 date=t_date,
@@ -788,9 +808,30 @@ def settings():
             settings.alert_budget_pct = float(request.form.get("alert_budget_pct") or 0) or None
             db.session.commit()
             flash("Alerts updated.", "success")
+        elif action == "add_rule":
+            keyword = (request.form.get("rule_keyword") or "").strip()
+            cat_choice = (request.form.get("rule_category") or "").strip()
+            if not keyword or not cat_choice:
+                flash("Keyword and category are required for a rule.", "danger")
+            else:
+                exists = CategoryRule.query.filter_by(user_id=current_user.id, keyword=keyword).first()
+                if exists:
+                    exists.category = cat_choice
+                else:
+                    db.session.add(CategoryRule(user_id=current_user.id, keyword=keyword, category=cat_choice))
+                db.session.commit()
+                flash("Category rule saved.", "success")
+        elif action == "delete_rule":
+            rule_id = request.form.get("rule_id")
+            rule = CategoryRule.query.filter_by(id=rule_id, user_id=current_user.id).first()
+            if rule:
+                db.session.delete(rule)
+                db.session.commit()
+                flash("Rule deleted.", "info")
         return redirect(url_for("main.settings"))
 
     rates = CurrencyRate.query.filter_by(user_id=current_user.id).all()
+    rules = CategoryRule.query.filter_by(user_id=current_user.id).order_by(CategoryRule.created_at.desc()).all()
     return render_template(
         "settings.html",
         message=message,
@@ -799,6 +840,7 @@ def settings():
         rates=rates,
         currencies=BASE_CURRENCIES,
         settings=settings,
+        rules=rules,
     )
 
 

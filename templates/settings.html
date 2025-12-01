@@ -114,5 +114,50 @@
         <div class="alert alert-success">{{ message }}</div>
         {% endif %}
     </div>
+    <div class="col-lg-6">
+        <div class="card glass-card mb-3">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Category Rules</h5>
+                <form method="POST" class="row g-2 align-items-end">
+                    <input type="hidden" name="action" value="add_rule">
+                    <div class="col-md-6">
+                        <label class="form-label">Keyword</label>
+                        <input name="rule_keyword" class="form-control" placeholder="e.g., uber, starbucks">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Category</label>
+                        <select name="rule_category" class="form-select">
+                            <option value="">Select</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat[0] }}">{{ cat[0] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100 mt-4">Save</button>
+                    </div>
+                </form>
+                {% if rules %}
+                    <div class="list-group list-group-flush mt-3">
+                        {% for r in rules %}
+                        <div class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold">{{ r.keyword }}</div>
+                                <small class="text-secondary">→ {{ r.category }}</small>
+                            </div>
+                            <form method="POST" style="margin:0;">
+                                <input type="hidden" name="action" value="delete_rule">
+                                <input type="hidden" name="rule_id" value="{{ r.id }}">
+                                <button class="btn btn-sm btn-outline-light">Delete</button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-secondary mb-0 mt-3">No rules yet. Add a keyword to auto-assign categories.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
