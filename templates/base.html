@@ -51,7 +51,7 @@
        style="background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221600%22 height=%22900%22 viewBox=%220 0 1600 900%22%3E%3Cfilter id=%22n%22 x=%220%22 y=%220%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%221600%22 height=%22900%22 filter=%22url(%23n)%22 opacity=%220.05%22/%3E%3C/svg%3E');"></div>
 
   <header class="sticky top-0 z-20 backdrop-blur bg-black/40 border-b border-white/5">
-    <nav class="max-w-7xl mx-auto px-4 lg:px-6 flex items-center justify-between h-16">
+    <nav class="max-w-screen-2xl mx-auto px-4 lg:px-8 flex items-center justify-between h-16">
       <div class="flex items-center gap-4">
         <a href="{{ url_for('main.dashboard') }}" class="text-lg font-extrabold tracking-tight">Pulse</a>
         {% if current_user.is_authenticated %}
@@ -77,20 +77,22 @@
     </nav>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 lg:px-6 py-6 space-y-6 relative z-10">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="space-y-2 mb-4">
-          {% for category, message in messages %}
-            <div class="rounded-xl px-4 py-3 border border-white/10 bg-slate-900/70 text-sm">{{ message }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
+  <main class="max-w-screen-2xl mx-auto px-4 lg:px-8 py-6 space-y-6 relative z-10">
+    {% if request.endpoint != 'auth.login' %}
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="space-y-2 mb-4">
+            {% for category, message in messages %}
+              <div class="rounded-xl px-4 py-3 border border-white/10 bg-slate-900/70 text-sm">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="max-w-7xl mx-auto px-4 lg:px-6 py-6 text-center text-xs text-text-muted border-t border-white/5">
+  <footer class="max-w-screen-2xl mx-auto px-4 lg:px-8 py-6 text-center text-xs text-text-muted border-t border-white/5">
     &copy; {{ now().year if now else '' }} Pulse Finance · Diego Reyes. All rights reserved.
   </footer>
 
